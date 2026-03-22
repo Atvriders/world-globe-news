@@ -13,7 +13,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 // ── Types ───────────────────────────────────────────────────────────────────
 
 type SortMode = 'breaking' | 'newest' | 'sources' | 'category';
-type SidebarTab = 'feed' | 'sources';
+type SidebarTab = 'trending' | 'feed' | 'sources';
 
 interface NewsSidebarProps {
   clusters: NewsCluster[];
@@ -143,7 +143,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
   const [sortMode, setSortMode] = useState<SortMode>('breaking');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [hoveredSort, setHoveredSort] = useState(false);
-  const [activeTab, setActiveTab] = useState<SidebarTab>('feed');
+  const [activeTab, setActiveTab] = useState<SidebarTab>('trending');
   const [hoveredSidebarTab, setHoveredSidebarTab] = useState<SidebarTab | null>(null);
   const [collapsedSources, setCollapsedSources] = useState<Set<string>>(new Set());
   const [hoveredSourceChip, setHoveredSourceChip] = useState<string | null>(null);
@@ -483,6 +483,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
   const renderTabBar = () => {
     const tabs: { key: SidebarTab; label: string }[] = [
+      { key: 'trending', label: '🔥 Trending' },
       { key: 'feed', label: 'Feed' },
       { key: 'sources', label: 'Sources' },
     ];
@@ -1108,6 +1109,100 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
               )}
             </div>
           </>
+        )}
+
+        {/* ── Trending tab content ── */}
+        {activeTab === 'trending' && (
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
+            {/* Trending = top stories by source count (most covered) */}
+            {(() => {
+              const trending = [...filtered]
+                .sort((a, b) => b.articles.length - a.articles.length || (b.isBreaking ? 1 : 0) - (a.isBreaking ? 1 : 0))
+                .slice(0, 30);
+
+              if (trending.length === 0) {
+                return (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#6b6578', fontSize: 12 }}>
+                    No trending stories yet
+                  </div>
+                );
+              }
+
+              return trending.map((cluster, i) => (
+                <div
+                  key={cluster.id}
+                  onClick={() => onSelectCluster(cluster)}
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    padding: '10px 16px',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid rgba(255,255,255,0.03)',
+                    background: selectedCluster?.id === cluster.id ? 'rgba(99, 102, 241, 0.08)' : hoveredCard === cluster.id ? 'rgba(255,255,255,0.04)' : 'transparent',
+                    transition: 'background 0.15s ease',
+                    alignItems: 'flex-start',
+                  }}
+                  onMouseEnter={() => setHoveredCard(cluster.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  {/* Rank number */}
+                  <span style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: i < 3 ? '#a78bfa' : '#3a3545',
+                    minWidth: 28,
+                    textAlign: 'center',
+                    lineHeight: 1.2,
+                    flexShrink: 0,
+                  }}>
+                    {i + 1}
+                  </span>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Title */}
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#f5f0eb',
+                      lineHeight: 1.4,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {cluster.title}
+                    </div>
+
+                    {/* Meta */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, fontSize: 10, color: '#6b6578' }}>
+                      {cluster.isBreaking && (
+                        <span style={{
+                          background: 'rgba(239, 68, 68, 0.15)',
+                          color: '#ef4444',
+                          padding: '1px 6px',
+                          borderRadius: 6,
+                          fontSize: 9,
+                          fontWeight: 700,
+                        }}>
+                          BREAKING
+                        </span>
+                      )}
+                      <span style={{
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        color: '#a78bfa',
+                        padding: '1px 6px',
+                        borderRadius: 6,
+                        fontWeight: 700,
+                      }}>
+                        {cluster.articles.length} sources
+                      </span>
+                      <span>{cluster.location?.city || cluster.location?.country || ''}</span>
+                    </div>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
         )}
 
         {/* ── Sources tab content ── */}
