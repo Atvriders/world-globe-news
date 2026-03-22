@@ -13,13 +13,16 @@ Interactive 3D globe news viewer — browse breaking news from around the world 
 - **Expandable Source Cards** — Click any source to see article summary + political bias badge, then "Open Source" button to read the original
 - **URL Search** — Paste any article URL to find similar stories being covered on the globe
 - **Search by Source** — Type a source name (BBC, Reuters, CNN) in the search bar to filter by outlet
+- **4 Sidebar Tabs** — USA Trending (US news ranked by sources), Trending (global), Feed (sorted/filtered), Sources (grouped by outlet)
+- **USA Trending** — Filters US stories by country code + keywords (congress, senate, white house, pentagon, etc.), ranked by coverage
+- **Sources Tab** — Articles grouped by news outlet with collapsible sections, bias badges, and popular source chips
 - **8 Category Filters** — World, Politics, Business, Technology, Sports, Health, Science, Entertainment (dropdown menu)
 - **4 Sort Modes** — Breaking First, Newest, Most Sources, Category grouping
 - **Time Filters** — Last hour, 6 hours, 24 hours, or 7 days
 - **Region Quick-Select** — Horizontal glass bar with fly-to buttons for Africa, Americas, Asia, Europe, Oceania, Middle East
 - **Live Stats Overlay** — Floating panel showing story count, breaking count, active sources, countries covered
 - **News Ticker** — Ultra-slow scrolling headlines with slide-in animation and "NEW" badge on fresh stories (30s display)
-- **Update Sources** — Manual refresh button to pull latest news on demand
+- **Update Sources** — Manual refresh triggers full RSS re-fetch (2-minute cooldown)
 - **Low Performance Mode** — Toggle for slower devices: disables atmosphere, rings, arcs, reduces pins to 50
 - **Holographic Comfy UI** — Frosted glass panels with inner glow, warm indigo-violet gradients, 16 animations, 2026-2030 aesthetic
 
