@@ -50,17 +50,27 @@ export function useNewsFetch() {
     }
   }, [fetchNews]);
 
-  // Initial fetch + active polling
+  // Initial rapid polling (every 1s for 10s) then normal 30s interval
   useEffect(() => {
     isMounted.current = true;
     setIsLoading(true);
     fetchNews();
 
-    const interval = setInterval(fetchNews, POLL_INTERVAL);
+    // Rapid poll: fetch every second for 10 seconds to pick up data quickly
+    let rapidCount = 0;
+    const rapidInterval = setInterval(() => {
+      rapidCount++;
+      fetchNews();
+      if (rapidCount >= 10) clearInterval(rapidInterval);
+    }, 1000);
+
+    // Normal polling starts after rapid phase
+    const normalInterval = setInterval(fetchNews, POLL_INTERVAL);
 
     return () => {
       isMounted.current = false;
-      clearInterval(interval);
+      clearInterval(rapidInterval);
+      clearInterval(normalInterval);
     };
   }, [fetchNews, setIsLoading]);
 

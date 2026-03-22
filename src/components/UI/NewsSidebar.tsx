@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { NewsCluster, NewsCategory, TimeFilter } from '../../types';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
+import { NewsCluster, NewsCategory, TimeFilter, NewsArticle } from '../../types';
 import {
   CATEGORY_COLORS,
   CATEGORY_GRADIENTS,
@@ -7,11 +7,13 @@ import {
   CATEGORY_LABELS,
   UI,
 } from '../../data/theme';
+import { getSourceByName, BIAS_COLORS, BIAS_LABELS } from '../../data/newsSources';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
 type SortMode = 'breaking' | 'newest' | 'sources' | 'category';
+type SidebarTab = 'feed' | 'sources';
 
 interface NewsSidebarProps {
   clusters: NewsCluster[];
@@ -23,6 +25,11 @@ interface NewsSidebarProps {
   onTimeFilterChange: (tf: TimeFilter) => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+}
+
+interface SourceGroup {
+  name: string;
+  articles: { article: NewsArticle; cluster: NewsCluster }[];
 }
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -136,6 +143,14 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
   const [sortMode, setSortMode] = useState<SortMode>('breaking');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [hoveredSort, setHoveredSort] = useState(false);
+  const [activeTab, setActiveTab] = useState<SidebarTab>('feed');
+  const [hoveredSidebarTab, setHoveredSidebarTab] = useState<SidebarTab | null>(null);
+  const [collapsedSources, setCollapsedSources] = useState<Set<string>>(new Set());
+  const [hoveredSourceChip, setHoveredSourceChip] = useState<string | null>(null);
+  const [hoveredSourceHeader, setHoveredSourceHeader] = useState<string | null>(null);
+  const [hoveredSourceArticle, setHoveredSourceArticle] = useState<string | null>(null);
+  const sourceListRef = useRef<HTMLDivElement>(null);
+  const sourceRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isMobile = useIsMobile();
 
   React.useEffect(() => { injectScrollbarStyle(); }, []);
@@ -165,6 +180,27 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     return groupByCategory(sorted);
   }, [sorted, sortMode]);
 
+  // ── Sources tab data ──
+
+  const sourceGroups = useMemo((): SourceGroup[] => {
+    const map = new Map<string, { article: NewsArticle; cluster: NewsCluster }[]>();
+    for (const cluster of filtered) {
+      for (const article of cluster.articles) {
+        const name = article.source.name;
+        if (!map.has(name)) map.set(name, []);
+        map.get(name)!.push({ article, cluster });
+      }
+    }
+    const groups: SourceGroup[] = [];
+    for (const [name, articles] of map) {
+      groups.push({ name, articles });
+    }
+    groups.sort((a, b) => b.articles.length - a.articles.length);
+    return groups.slice(0, 20);
+  }, [filtered]);
+
+  const topSources = useMemo(() => sourceGroups.slice(0, 8), [sourceGroups]);
+
   const toggleCategory = (cat: string) => {
     setCollapsedCategories((prev) => {
       const next = new Set(prev);
@@ -173,6 +209,28 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
       return next;
     });
   };
+
+  const toggleSource = (name: string) => {
+    setCollapsedSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const scrollToSource = useCallback((name: string) => {
+    const el = sourceRefs.current[name];
+    if (el && sourceListRef.current) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Also expand it
+      setCollapsedSources((prev) => {
+        const next = new Set(prev);
+        next.delete(name);
+        return next;
+      });
+    }
+  }, []);
 
   // ── Styles ──
 
@@ -421,6 +479,346 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     </span>
   );
 
+  // ── Tab bar render ──
+
+  const renderTabBar = () => {
+    const tabs: { key: SidebarTab; label: string }[] = [
+      { key: 'feed', label: 'Feed' },
+      { key: 'sources', label: 'Sources' },
+    ];
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          padding: '8px 16px 0',
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          const isHover = hoveredSidebarTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              onMouseEnter={() => setHoveredSidebarTab(tab.key)}
+              onMouseLeave={() => setHoveredSidebarTab(null)}
+              style={{
+                flex: 1,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.3px',
+                padding: '8px 14px 10px',
+                borderRadius: '10px 10px 0 0',
+                border: 'none',
+                borderBottom: isActive
+                  ? '2px solid #a78bfa'
+                  : '2px solid transparent',
+                background: isActive
+                  ? 'rgba(124, 92, 252, 0.08)'
+                  : isHover
+                    ? 'rgba(255, 255, 255, 0.06)'
+                    : 'transparent',
+                backdropFilter: isActive ? 'blur(8px)' : 'none',
+                WebkitBackdropFilter: isActive ? 'blur(8px)' : 'none',
+                color: isActive
+                  ? '#a78bfa'
+                  : isHover
+                    ? UI.text
+                    : UI.textSecondary,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                outline: 'none',
+                textTransform: 'uppercase',
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ── Sources tab render ──
+
+  const renderSourcesTab = () => {
+    if (sourceGroups.length === 0) {
+      return (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '48px 24px',
+            margin: '24px 0',
+            background: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 14,
+            gap: 10,
+          }}
+        >
+          <span style={{ fontSize: 32, opacity: 0.4 }}>📡</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: UI.textSecondary, textAlign: 'center' }}>
+            No sources found
+          </span>
+          <span style={{ fontSize: 11, color: UI.textMuted, textAlign: 'center', lineHeight: 1.5 }}>
+            Try adjusting your time filter
+            <br />
+            or broadening your search.
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Popular Sources chips */}
+        {topSources.length > 0 && (
+          <div style={{ padding: '8px 12px 4px' }}>
+            <div
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.8px',
+                color: UI.textMuted,
+                marginBottom: 6,
+              }}
+            >
+              Popular Sources
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                overflowX: 'auto',
+                paddingBottom: 6,
+                scrollbarWidth: 'none',
+              }}
+              className={SCROLLBAR_CLASS}
+            >
+              {topSources.map((sg) => {
+                const isHover = hoveredSourceChip === sg.name;
+                return (
+                  <button
+                    key={sg.name}
+                    onClick={() => scrollToSource(sg.name)}
+                    onMouseEnter={() => setHoveredSourceChip(sg.name)}
+                    onMouseLeave={() => setHoveredSourceChip(null)}
+                    style={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      padding: '4px 10px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      background: isHover
+                        ? 'rgba(255,255,255,0.1)'
+                        : 'rgba(255,255,255,0.05)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      color: isHover ? UI.text : UI.textSecondary,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {sg.name}
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        background: 'rgba(124, 92, 252, 0.15)',
+                        color: UI.accent,
+                        padding: '1px 5px',
+                        borderRadius: 8,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {sg.articles.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Source groups list */}
+        <div
+          ref={sourceListRef}
+          style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 6px' }}
+          className={SCROLLBAR_CLASS}
+        >
+          {sourceGroups.map((sg) => {
+            const isCollapsed = collapsedSources.has(sg.name);
+            const isHeaderHover = hoveredSourceHeader === sg.name;
+            const sourceMeta = getSourceByName(sg.name);
+
+            return (
+              <div
+                key={sg.name}
+                ref={(el) => { sourceRefs.current[sg.name] = el; }}
+                style={{ marginBottom: 4 }}
+              >
+                {/* Source header */}
+                <div
+                  onClick={() => toggleSource(sg.name)}
+                  onMouseEnter={() => setHoveredSourceHeader(sg.name)}
+                  onMouseLeave={() => setHoveredSourceHeader(null)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 10px',
+                    borderRadius: 8,
+                    background: isHeaderHover
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {/* Chevron */}
+                  <span
+                    style={{
+                      fontSize: 9,
+                      color: UI.textMuted,
+                      transition: 'transform 0.2s ease',
+                      transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    ▼
+                  </span>
+
+                  {/* Source name */}
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#f5f0eb',
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {sg.name}
+                  </span>
+
+                  {/* Bias pill */}
+                  {sourceMeta?.bias && (
+                    <span
+                      style={{
+                        fontSize: 8,
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: 6,
+                        background: `${BIAS_COLORS[sourceMeta.bias]}18`,
+                        color: BIAS_COLORS[sourceMeta.bias],
+                        border: `1px solid ${BIAS_COLORS[sourceMeta.bias]}30`,
+                        whiteSpace: 'nowrap',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.3px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {BIAS_LABELS[sourceMeta.bias]}
+                    </span>
+                  )}
+
+                  {/* Article count badge */}
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      background: 'rgba(124, 92, 252, 0.12)',
+                      border: '1px solid rgba(124, 92, 252, 0.2)',
+                      color: UI.accent,
+                      padding: '2px 7px',
+                      borderRadius: 8,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {sg.articles.length}
+                  </span>
+                </div>
+
+                {/* Articles under this source */}
+                {!isCollapsed && (
+                  <div style={{ padding: '4px 0 2px 20px' }}>
+                    {sg.articles.map(({ article, cluster }, idx) => {
+                      const articleKey = `${sg.name}-${article.id}-${idx}`;
+                      const isArticleHover = hoveredSourceArticle === articleKey;
+                      return (
+                        <div
+                          key={articleKey}
+                          onClick={() => onSelectCluster(cluster)}
+                          onMouseEnter={() => setHoveredSourceArticle(articleKey)}
+                          onMouseLeave={() => setHoveredSourceArticle(null)}
+                          style={{
+                            padding: '5px 8px',
+                            borderRadius: 6,
+                            background: isArticleHover
+                              ? 'rgba(255,255,255,0.06)'
+                              : 'transparent',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                            borderLeft: '1px solid rgba(255,255,255,0.04)',
+                            marginBottom: 1,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: isArticleHover ? '#f5f0eb' : UI.textSecondary,
+                              lineHeight: 1.4,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              transition: 'color 0.15s ease',
+                            }}
+                          >
+                            {article.title}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 9,
+                              color: UI.textMuted,
+                              marginTop: 2,
+                            }}
+                          >
+                            {timeAgo(article.publishedAt)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
   // ── Render ──
 
   return (
@@ -514,41 +912,43 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* Sort dropdown */}
-            <select
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as SortMode)}
-              onMouseEnter={() => setHoveredSort(true)}
-              onMouseLeave={() => setHoveredSort(false)}
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: UI.textSecondary,
-                background: hoveredSort
-                  ? 'rgba(255,255,255,0.08)'
-                  : 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 8,
-                padding: '4px 6px',
-                outline: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none' as any,
-                paddingRight: 18,
-                backgroundImage:
-                  'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\' viewBox=\'0 0 8 5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%236b6578\'/%3E%3C/svg%3E")',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 5px center',
-              }}
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {/* Sort dropdown — only show on feed tab */}
+            {activeTab === 'feed' && (
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value as SortMode)}
+                onMouseEnter={() => setHoveredSort(true)}
+                onMouseLeave={() => setHoveredSort(false)}
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: UI.textSecondary,
+                  background: hoveredSort
+                    ? 'rgba(255,255,255,0.08)'
+                    : 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 8,
+                  padding: '4px 6px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none' as any,
+                  paddingRight: 18,
+                  backgroundImage:
+                    'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'5\' viewBox=\'0 0 8 5\'%3E%3Cpath d=\'M0 0l4 5 4-5z\' fill=\'%236b6578\'/%3E%3C/svg%3E")',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 5px center',
+                }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            )}
             {/* Close button */}
             <button
               style={{
@@ -572,135 +972,146 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
           </div>
         </div>
 
-        {/* ── Stats bar ── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 16px',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
-          }}
-        >
-          {glassBadge(<>{filtered.length} stories</>)}
-          {breakingCount > 0 &&
-            glassBadge(
-              <>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: UI.breaking,
-                    marginRight: 4,
-                    verticalAlign: 'middle',
-                  }}
-                />
-                {breakingCount} breaking
-              </>,
-              {
-                color: UI.breaking,
-                background: 'rgba(255, 65, 108, 0.1)',
-                border: '1px solid rgba(255, 65, 108, 0.15)',
-              },
-            )}
-          {glassBadge(<>{activeSourceCount} active</>)}
-        </div>
+        {/* ── Tab bar ── */}
+        {renderTabBar()}
 
-        {/* ── Time filter pills ── */}
-        <div style={{ display: 'flex', gap: 4, padding: '8px 16px 6px' }}>
-          {TIME_OPTIONS.map((tf) => {
-            const isActive = timeFilter === tf;
-            const isHover = hoveredPill === tf;
-            return (
-              <button
-                key={tf}
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  padding: '4px 10px',
-                  borderRadius: 12,
-                  border: isActive ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                  background: isActive
-                    ? 'linear-gradient(135deg, #6366f1, #a78bfa)'
-                    : isHover
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(255,255,255,0.04)',
-                  color: isActive ? '#fff' : isHover ? UI.text : UI.textSecondary,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                }}
-                onClick={() => onTimeFilterChange(tf)}
-                onMouseEnter={() => setHoveredPill(tf)}
-                onMouseLeave={() => setHoveredPill(null)}
-              >
-                {tf}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── Scrollable list ── */}
-        <div
-          style={{ flex: 1, overflowY: 'auto', padding: '6px 12px' }}
-          className={SCROLLBAR_CLASS}
-        >
-          {filtered.length === 0 ? (
-            /* ── Empty state ── */
+        {/* ── Feed tab content ── */}
+        {activeTab === 'feed' && (
+          <>
+            {/* ── Stats bar ── */}
             <div
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                padding: '48px 24px',
-                margin: '24px 0',
-                background: 'rgba(255,255,255,0.04)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 14,
-                gap: 10,
+                gap: 6,
+                padding: '8px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
               }}
             >
-              <span style={{ fontSize: 32, opacity: 0.4 }}>📭</span>
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: UI.textSecondary,
-                  textAlign: 'center',
-                }}
-              >
-                No stories found
-              </span>
-              <span
-                style={{
-                  fontSize: 11,
-                  color: UI.textMuted,
-                  textAlign: 'center',
-                  lineHeight: 1.5,
-                }}
-              >
-                Try adjusting your time filter
-                <br />
-                or broadening your search.
-              </span>
+              {glassBadge(<>{filtered.length} stories</>)}
+              {breakingCount > 0 &&
+                glassBadge(
+                  <>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: UI.breaking,
+                        marginRight: 4,
+                        verticalAlign: 'middle',
+                      }}
+                    />
+                    {breakingCount} breaking
+                  </>,
+                  {
+                    color: UI.breaking,
+                    background: 'rgba(255, 65, 108, 0.1)',
+                    border: '1px solid rgba(255, 65, 108, 0.15)',
+                  },
+                )}
+              {glassBadge(<>{activeSourceCount} active</>)}
             </div>
-          ) : sortMode === 'category' && categoryGroups ? (
-            /* ── Category-grouped view ── */
-            Object.entries(categoryGroups).map(([cat, items]) =>
-              items.length > 0
-                ? renderCategoryGroup(cat as NewsCategory, items)
-                : null,
-            )
-          ) : (
-            /* ── Flat sorted list ── */
-            sorted.map(renderCard)
-          )}
-        </div>
+
+            {/* ── Time filter pills ── */}
+            <div style={{ display: 'flex', gap: 4, padding: '8px 16px 6px' }}>
+              {TIME_OPTIONS.map((tf) => {
+                const isActive = timeFilter === tf;
+                const isHover = hoveredPill === tf;
+                return (
+                  <button
+                    key={tf}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      padding: '4px 10px',
+                      borderRadius: 12,
+                      border: isActive ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                      background: isActive
+                        ? 'linear-gradient(135deg, #6366f1, #a78bfa)'
+                        : isHover
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'rgba(255,255,255,0.04)',
+                      color: isActive ? '#fff' : isHover ? UI.text : UI.textSecondary,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                    }}
+                    onClick={() => onTimeFilterChange(tf)}
+                    onMouseEnter={() => setHoveredPill(tf)}
+                    onMouseLeave={() => setHoveredPill(null)}
+                  >
+                    {tf}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ── Scrollable list ── */}
+            <div
+              style={{ flex: 1, overflowY: 'auto', padding: '6px 12px' }}
+              className={SCROLLBAR_CLASS}
+            >
+              {filtered.length === 0 ? (
+                /* ── Empty state ── */
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '48px 24px',
+                    margin: '24px 0',
+                    background: 'rgba(255,255,255,0.04)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 14,
+                    gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 32, opacity: 0.4 }}>📭</span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: UI.textSecondary,
+                      textAlign: 'center',
+                    }}
+                  >
+                    No stories found
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: UI.textMuted,
+                      textAlign: 'center',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Try adjusting your time filter
+                    <br />
+                    or broadening your search.
+                  </span>
+                </div>
+              ) : sortMode === 'category' && categoryGroups ? (
+                /* ── Category-grouped view ── */
+                Object.entries(categoryGroups).map(([cat, items]) =>
+                  items.length > 0
+                    ? renderCategoryGroup(cat as NewsCategory, items)
+                    : null,
+                )
+              ) : (
+                /* ── Flat sorted list ── */
+                sorted.map(renderCard)
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ── Sources tab content ── */}
+        {activeTab === 'sources' && renderSourcesTab()}
 
         {/* ── Footer ── */}
         <div
