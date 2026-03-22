@@ -24,7 +24,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
   useEffect(() => {
     if (clusters.length > prevCountRef.current) {
       setShowNewBadge(true);
-      const timer = setTimeout(() => setShowNewBadge(false), 5000);
+      const timer = setTimeout(() => setShowNewBadge(false), 30000);
       return () => clearTimeout(timer);
     }
     prevCountRef.current = clusters.length;
