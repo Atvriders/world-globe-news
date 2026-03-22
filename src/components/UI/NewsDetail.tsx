@@ -62,6 +62,7 @@ function ensureKeyframes() {
 const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) => {
   const [visible, setVisible] = useState(false);
   const [hoveredSource, setHoveredSource] = useState<string | null>(null);
+  const [expandedArticle, setExpandedArticle] = useState<string | null>(null);
   const [flyHover, setFlyHover] = useState(false);
   const [backHover, setBackHover] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -447,26 +448,58 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {sortedArticles.map((article, index) => {
               const color = sourceColor(article.source.name);
+              const isExpanded = expandedArticle === article.id;
               return (
-                <a
+                <div
                   key={article.id}
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   style={sourceCard(article.id, index)}
                   onMouseEnter={() => setHoveredSource(article.id)}
                   onMouseLeave={() => setHoveredSource(null)}
+                  onClick={() => setExpandedArticle(isExpanded ? null : article.id)}
                 >
                   {/* Top row: dot + name + time */}
                   <div style={cardTopRow}>
                     <div style={dotStyle(color)} />
                     <span style={sourceNameStyle}>{article.source.name}</span>
                     <span style={timeStyle}>{relativeTime(article.publishedAt)}</span>
-                    <span style={externalIcon(article.id)}>&#8599;</span>
+                    <span style={{ fontSize: 10, color: '#6b6578', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)' }}>&#9654;</span>
                   </div>
                   {/* Article title */}
                   <div style={articleTitleStyle(article.id)}>{article.title}</div>
-                </a>
+                  {/* Expanded: summary + open source button */}
+                  {isExpanded && (
+                    <div style={{ marginTop: 8, animation: 'fade-in 0.3s ease forwards' }}>
+                      {article.description && (
+                        <div style={{ fontSize: 12, lineHeight: 1.55, color: '#a8a3b3', marginBottom: 10 }}>
+                          {article.description}
+                        </div>
+                      )}
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 14px',
+                          background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                          color: '#fff',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          borderRadius: 8,
+                          textDecoration: 'none',
+                          letterSpacing: '0.04em',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 8px rgba(124, 92, 252, 0.3)',
+                        }}
+                      >
+                        Open Source &#8599;
+                      </a>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
