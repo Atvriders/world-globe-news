@@ -355,26 +355,26 @@ function jaccardSimilarity(setA, setB) {
 
 const RSS_FEEDS = [
   // ── BBC ──────────────────────────────────────────────────────────────────────
-  { id: 'bbc-world', name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml', category: 'world' },
-  { id: 'bbc-tech', name: 'BBC Technology', url: 'http://feeds.bbci.co.uk/news/technology/rss.xml', category: 'technology' },
-  { id: 'bbc-business', name: 'BBC Business', url: 'http://feeds.bbci.co.uk/news/business/rss.xml', category: 'business' },
-  { id: 'bbc-science', name: 'BBC Science', url: 'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml', category: 'science' },
-  { id: 'bbc-sport', name: 'BBC Sport', url: 'http://feeds.bbci.co.uk/sport/rss.xml', category: 'sports' },
-  { id: 'bbc-health', name: 'BBC Health', url: 'http://feeds.bbci.co.uk/news/health/rss.xml', category: 'health' },
-  { id: 'bbc-entertainment', name: 'BBC Entertainment', url: 'http://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml', category: 'entertainment' },
+  { id: 'bbc-world', name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', category: 'world' },
+  { id: 'bbc-tech', name: 'BBC Technology', url: 'https://feeds.bbci.co.uk/news/technology/rss.xml', category: 'technology' },
+  { id: 'bbc-business', name: 'BBC Business', url: 'https://feeds.bbci.co.uk/news/business/rss.xml', category: 'business' },
+  { id: 'bbc-science', name: 'BBC Science', url: 'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', category: 'science' },
+  { id: 'bbc-sport', name: 'BBC Sport', url: 'https://feeds.bbci.co.uk/sport/rss.xml', category: 'sports' },
+  { id: 'bbc-health', name: 'BBC Health', url: 'https://feeds.bbci.co.uk/news/health/rss.xml', category: 'health' },
+  { id: 'bbc-entertainment', name: 'BBC Entertainment', url: 'https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml', category: 'entertainment' },
 
   // ── US News ──────────────────────────────────────────────────────────────────
-  { id: 'cnn-top', name: 'CNN Top Stories', url: 'http://rss.cnn.com/rss/cnn_topstories.rss', category: 'world' },
-  { id: 'cnn-world', name: 'CNN World', url: 'http://rss.cnn.com/rss/cnn_world.rss', category: 'world' },
+  { id: 'cnn-top', name: 'CNN Top Stories', url: 'https://rss.cnn.com/rss/cnn_topstories.rss', category: 'world' },
+  { id: 'cnn-world', name: 'CNN World', url: 'https://rss.cnn.com/rss/cnn_world.rss', category: 'world' },
   { id: 'fox-news', name: 'Fox News', url: 'https://moxie.foxnews.com/google-publisher/latest.xml', category: 'world' },
   { id: 'nbc-news', name: 'NBC News', url: 'https://feeds.nbcnews.com/nbcnews/public/news', category: 'world' },
-  { id: 'abc-news', name: 'ABC News', url: 'http://feeds.abcnews.com/abcnews/usheadlines', category: 'world' },
+  { id: 'abc-news', name: 'ABC News', url: 'https://feeds.abcnews.com/abcnews/usheadlines', category: 'world' },
   { id: 'cbs-world', name: 'CBS News', url: 'https://www.cbsnews.com/latest/rss/world', category: 'world' },
   { id: 'cbs-politics', name: 'CBS Politics', url: 'https://www.cbsnews.com/latest/rss/politics', category: 'politics' },
   { id: 'cbs-science', name: 'CBS Science', url: 'https://www.cbsnews.com/latest/rss/science', category: 'science' },
   { id: 'npr-world', name: 'NPR World', url: 'https://feeds.npr.org/1004/rss.xml', category: 'world' },
   { id: 'npr-politics', name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml', category: 'politics' },
-  { id: 'usa-today', name: 'USA Today', url: 'http://rssfeeds.usatoday.com/UsatodaycomNation-TopStories', category: 'world' },
+  { id: 'usa-today', name: 'USA Today', url: 'https://rssfeeds.usatoday.com/UsatodaycomNation-TopStories', category: 'world' },
   { id: 'politico', name: 'Politico', url: 'https://rss.politico.com/politics-news.xml', category: 'politics' },
   { id: 'the-hill', name: 'The Hill', url: 'https://thehill.com/feed/', category: 'politics' },
 

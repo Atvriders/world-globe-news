@@ -32,7 +32,7 @@ export function useNewsFetch() {
 
       const data = await res.json();
 
-      if (isMounted.current && data.clusters && data.clusters.length > 0) {
+      if (isMounted.current && data.clusters) {
         setClusters(data.clusters as NewsCluster[]);
         setLastRefresh(Date.now());
         setError(null);

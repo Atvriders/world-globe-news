@@ -45,7 +45,7 @@ const App: React.FC = () => {
     if (cluster.location) {
       setFlyTo({ lat: cluster.location.lat, lng: cluster.location.lng });
     }
-  }, [setSelectedCluster]);
+  }, [setSelectedCluster, setFlyTo]);
 
   // Handle fly to from detail panel
   const handleFlyTo = useCallback((lat: number, lng: number) => {
@@ -76,8 +76,18 @@ const App: React.FC = () => {
     if (selectedCategory !== 'all') {
       result = result.filter(c => c.category === selectedCategory);
     }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(c =>
+        c.title.toLowerCase().includes(q) ||
+        c.summary.toLowerCase().includes(q) ||
+        c.location?.city?.toLowerCase().includes(q) ||
+        c.location?.country?.toLowerCase().includes(q) ||
+        c.articles.some(a => a.title.toLowerCase().includes(q))
+      );
+    }
     return result;
-  }, [clusters, selectedCategory]);
+  }, [clusters, selectedCategory, searchQuery]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#121218', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif" }}>

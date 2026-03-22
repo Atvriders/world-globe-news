@@ -226,6 +226,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
                   onMouseEnter={() => setHoveredItem(cat)}
                   onMouseLeave={() => setHoveredItem(null)}
                   style={{
+                    position: 'relative' as const,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
