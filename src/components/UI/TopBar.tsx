@@ -209,7 +209,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
               boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05)',
               padding: '6px 0',
               animation: 'topbar-dropdown-in 0.18s ease-out forwards',
-              zIndex: 1001,
+              zIndex: 1200,
             }}
           >
             {CATEGORIES.map((cat) => {
