@@ -172,7 +172,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     whiteSpace: 'nowrap',
-    animation: 'ticker-scroll 140s linear infinite',
+    animation: 'ticker-scroll 220s linear infinite',
     paddingLeft: 16,
   },
 
