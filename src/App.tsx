@@ -79,7 +79,7 @@ const App: React.FC = () => {
   }, [clusters, selectedCategory]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#121218', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif" }}>
       <style>{GLOBAL_CSS}</style>
 
       {/* 3D Globe — always renders */}

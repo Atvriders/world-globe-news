@@ -20,79 +20,101 @@ const regions: Region[] = [
   { emoji: '🕌', name: 'Middle East', lat: 28, lng: 45 },
 ];
 
+const fadeInKeyframes = `
+@keyframes regionTooltipFadeIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+`;
+
 const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 48,
-        left: 16,
-        zIndex: 1100,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}
-    >
-      {regions.map((region, index) => (
-        <div
-          key={region.name}
-          style={{ position: 'relative' }}
-          onMouseEnter={() => setHoveredIndex(index)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          <button
-            onClick={() => onFlyTo(region.lat, region.lng)}
-            aria-label={region.name}
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: 'rgba(10,15,26,0.85)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 14,
-              padding: 0,
-              lineHeight: 1,
-              transition: 'background 0.2s, border-color 0.2s',
-              ...(hoveredIndex === index
-                ? {
-                    background: 'rgba(30,40,60,0.95)',
-                    borderColor: 'rgba(255,255,255,0.25)',
-                  }
-                : {}),
-            }}
-          >
-            {region.emoji}
-          </button>
-
-          {hoveredIndex === index && (
+    <>
+      <style>{fadeInKeyframes}</style>
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 52,
+          left: 20,
+          zIndex: 1100,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        {regions.map((region, index) => {
+          const isHovered = hoveredIndex === index;
+          return (
             <div
-              style={{
-                position: 'absolute',
-                left: 38,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'rgba(10,15,26,0.95)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: 4,
-                padding: '4px 8px',
-                color: '#e0e0e0',
-                fontSize: 12,
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-              }}
+              key={region.name}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              {region.name}
+              <button
+                onClick={() => onFlyTo(region.lat, region.lng)}
+                aria-label={region.name}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: isHovered
+                    ? 'rgba(255,255,255,0.12)'
+                    : 'rgba(255,255,255,0.06)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: isHovered
+                    ? '1px solid rgba(124, 92, 252, 0.4)'
+                    : '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: isHovered
+                    ? '0 4px 16px rgba(0,0,0,0.3), 0 0 12px rgba(124, 92, 252, 0.2)'
+                    : '0 4px 16px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 16,
+                  padding: 0,
+                  lineHeight: 1,
+                  transform: isHovered ? 'scale(1.08)' : 'scale(1)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  outline: 'none',
+                }}
+              >
+                {region.emoji}
+              </button>
+
+              {isHovered && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 44,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(255,255,255,0.06)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 8,
+                    padding: '4px 12px',
+                    color: 'rgba(255, 247, 237, 0.92)',
+                    fontSize: 11,
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                    animation: 'regionTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                  }}
+                >
+                  {region.name}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ))}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 };
 

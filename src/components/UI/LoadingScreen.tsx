@@ -5,27 +5,19 @@ interface LoadingScreenProps {
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
-  const [dots, setDots] = useState('');
   const [shouldRender, setShouldRender] = useState(isVisible);
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
-  // Animate dots cycling: "", ".", "..", "..."
-  useEffect(() => {
-    if (!isVisible) return;
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
-    }, 400);
-    return () => clearInterval(interval);
-  }, [isVisible]);
-
-  // Keep rendered while fading out, then remove from DOM
   useEffect(() => {
     if (isVisible) {
       setShouldRender(true);
+      setIsFadingOut(false);
     } else {
+      setIsFadingOut(true);
       const timer = setTimeout(() => {
         setShouldRender(false);
-      }, 500); // matches fade-out transition duration
+        setIsFadingOut(false);
+      }, 600);
       return () => clearTimeout(timer);
     }
   }, [isVisible]);
@@ -34,7 +26,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
 
   return (
     <div
-      ref={overlayRef}
       style={{
         position: 'fixed',
         top: 0,
@@ -42,52 +33,117 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
         width: '100vw',
         height: '100vh',
         zIndex: 9999,
-        background: '#0a0f1a',
+        background: '#121218',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.5s ease',
+        gap: '24px',
+        opacity: isFadingOut ? 0 : 1,
+        transform: isFadingOut ? 'scale(1.02)' : 'scale(1)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
       }}
     >
       <style>{`
-        @keyframes loading-screen-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes ls-border-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes ls-bar-fill {
+          0% { width: 0%; }
+          100% { width: 80%; }
+        }
+        @keyframes ls-bar-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
       `}</style>
 
+      {/* Animated globe with gradient border */}
       <div
         style={{
-          fontSize: '64px',
-          lineHeight: 1,
-          animation: 'loading-screen-spin 2s linear infinite',
-          marginBottom: '24px',
+          position: 'relative',
+          width: '64px',
+          height: '64px',
         }}
       >
-        🌍
+        {/* Spinning gradient border */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'conic-gradient(from 0deg, #7c5cfc, #00c6ff, #7c5cfc)',
+            animation: 'ls-border-spin 3s linear infinite',
+          }}
+        />
+        {/* Inner circle cutout */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '3px',
+            left: '3px',
+            width: '58px',
+            height: '58px',
+            borderRadius: '50%',
+            background: '#121218',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span style={{ fontSize: '32px', lineHeight: 1 }}>🌍</span>
+        </div>
       </div>
 
+      {/* Title with gradient text */}
       <div
         style={{
-          color: '#ffffff',
-          fontSize: '16px',
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          marginBottom: '12px',
+          fontSize: '18px',
+          fontWeight: 800,
+          letterSpacing: '3px',
+          background: 'linear-gradient(90deg, #7c5cfc, #00c6ff)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
         }}
       >
         WORLD GLOBE NEWS
       </div>
 
+      {/* Subtitle */}
       <div
         style={{
-          color: '#6b7280',
-          fontSize: '12px',
+          color: '#6b6578',
+          fontSize: '13px',
+          fontWeight: 400,
+          marginTop: '-12px',
         }}
       >
-        Loading latest news{dots}
+        Connecting you to the world...
+      </div>
+
+      {/* Loading bar */}
+      <div
+        style={{
+          width: '200px',
+          height: '3px',
+          borderRadius: '3px',
+          background: 'rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            borderRadius: '3px',
+            background: 'linear-gradient(90deg, #7c5cfc, #00c6ff)',
+            animation: 'ls-bar-fill 2s ease forwards, ls-bar-pulse 1.5s ease-in-out 2s infinite',
+          }}
+        />
       </div>
     </div>
   );

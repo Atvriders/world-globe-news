@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useCallback, useEffect } from 'react';
 import Globe from 'react-globe.gl';
 import { NewsCluster, GlobeNewsPin, NewsCategory } from '../../types';
-import { CATEGORY_COLORS, GLOBE, UI } from '../../data/theme';
+import { CATEGORY_COLORS, GLOBE } from '../../data/theme';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,8 +47,11 @@ function labelText(d: object) {
   const count = pin.sourceCount > 1 ? ` [${pin.sourceCount}]` : '';
   return `${pin.label}${count}`;
 }
-function labelSize(d: object) { return (d as GlobeNewsPin).isBreaking ? 1.2 : 0.8; }
-function labelColor(d: object) { return (d as GlobeNewsPin).color; }
+function labelSize(d: object) { return (d as GlobeNewsPin).isBreaking ? 1.4 : 0.9; }
+function labelColor(d: object) {
+  const pin = d as GlobeNewsPin;
+  return pin.isBreaking ? pin.color : '#f5f0eb';
+}
 function labelDotRadius(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.5 : 0.3; }
 const LABEL_RESOLUTION = 2;
 
@@ -58,9 +61,9 @@ function ringColor(d: object) {
   const c = (d as GlobeNewsPin).color;
   return (t: number) => `${c}${Math.round((1 - t) * 255).toString(16).padStart(2, '0')}`;
 }
-function ringMaxRadius() { return 3; }
-function ringPropagationSpeed() { return 2; }
-function ringRepeatPeriod() { return 1500; }
+function ringMaxRadius() { return 4; }
+function ringPropagationSpeed() { return 1.5; }
+function ringRepeatPeriod() { return 2000; }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -87,7 +90,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     if (globeRef.current) {
       globeRef.current.pointOfView(
         { lat: pin.lat, lng: pin.lng, altitude: 1.5 },
-        1000
+        1500
       );
     }
   }, [onPinClick]);
@@ -101,7 +104,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     if (onFlyTo && globeRef.current) {
       globeRef.current.pointOfView(
         { lat: onFlyTo.lat, lng: onFlyTo.lng, altitude: 1.5 },
-        1200
+        1500
       );
     }
   }, [onFlyTo]);
@@ -109,16 +112,16 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   // Initial camera position
   useEffect(() => {
     if (globeRef.current) {
-      globeRef.current.pointOfView({ lat: 30, lng: 10, altitude: 2.2 }, 0);
+      globeRef.current.pointOfView({ lat: 25, lng: 0, altitude: 2.0 }, 0);
 
       // Configure controls
       const controls = globeRef.current.controls();
       if (controls) {
         controls.autoRotate = false;
         controls.enableZoom = true;
-        controls.zoomSpeed = 0.8;
-        controls.minDistance = 120;
-        controls.maxDistance = 600;
+        controls.zoomSpeed = 0.6;
+        controls.minDistance = 100;
+        controls.maxDistance = 700;
       }
     }
   }, []);
