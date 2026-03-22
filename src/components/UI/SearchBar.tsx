@@ -50,11 +50,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
 
   const containerStyle: CSSProperties = {
     position: 'fixed',
-    top: 64,
-    left: '50%',
-    transform: 'translateX(-50%)',
+    top: 58,
+    right: 16,
     zIndex: 1100,
-    width: 360,
+    width: 300,
     height: 42,
     background: 'rgba(255, 255, 255, 0.06)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
