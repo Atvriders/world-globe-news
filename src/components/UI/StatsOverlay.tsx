@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, CSSProperties } from 'react';
 import { NewsCluster } from '../../types';
 
 interface StatsOverlayProps {
@@ -43,57 +43,13 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({ clusters }) => {
   ];
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 60,
-        left: 16,
-        zIndex: 1050,
-        background: 'rgba(18,18,24,0.7)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderRadius: 12,
-        padding: '12px 16px',
-        border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-        maxWidth: 140,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        pointerEvents: 'none',
-      }}
-    >
+    <div style={containerStyle}>
       {rows.map((row) => (
-        <div
-          key={row.label}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span style={{ fontSize: 13, lineHeight: 1 }}>{row.icon}</span>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span
-              style={{
-                fontSize: 10,
-                color: 'rgba(255,255,255,0.45)',
-                lineHeight: 1.2,
-                letterSpacing: '0.02em',
-              }}
-            >
-              {row.label}
-            </span>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#f5f0e8',
-                lineHeight: 1.2,
-              }}
-            >
-              {row.value}
-            </span>
+        <div key={row.label} style={rowStyle}>
+          <span style={iconStyle}>{row.icon}</span>
+          <div style={colStyle}>
+            <span style={labelStyle}>{row.label}</span>
+            <span style={valueStyle}>{row.value}</span>
           </div>
         </div>
       ))}
@@ -101,4 +57,55 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({ clusters }) => {
   );
 };
 
-export default StatsOverlay;
+export default React.memo(StatsOverlay);
+
+// ── Module-level styles ─────────────────────────────────────────────────────
+
+const containerStyle: React.CSSProperties = {
+  position: 'fixed',
+  top: 60,
+  left: 16,
+  zIndex: 1050,
+  background: 'rgba(18,18,24,0.7)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  borderRadius: 12,
+  padding: '12px 16px',
+  border: '1px solid rgba(255,255,255,0.06)',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+  maxWidth: 140,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  pointerEvents: 'none',
+};
+
+const rowStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+};
+
+const iconStyle: React.CSSProperties = {
+  fontSize: 13,
+  lineHeight: 1,
+};
+
+const colStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 10,
+  color: 'rgba(255,255,255,0.45)',
+  lineHeight: 1.2,
+  letterSpacing: '0.02em',
+};
+
+const valueStyle: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
+  color: '#f5f0e8',
+  lineHeight: 1.2,
+};

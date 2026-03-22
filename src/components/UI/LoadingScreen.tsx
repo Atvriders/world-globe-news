@@ -78,6 +78,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
             borderRadius: '50%',
             background: 'conic-gradient(from 0deg, #7c5cfc, #00c6ff, #7c5cfc)',
             animation: 'ls-border-spin 3s linear infinite',
+            willChange: 'transform',
           }}
         />
         {/* Inner circle cutout */}

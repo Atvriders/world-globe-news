@@ -8,6 +8,14 @@ const app = express();
 const PORT = process.env.PORT || 3009;
 const rssParser = new Parser();
 
+// ── Performance constants ────────────────────────────────────────────────────
+
+const CONCURRENCY_LIMIT = 20;         // Max simultaneous feed fetches
+const FEED_TIMEOUT_MS = 10000;        // 10s timeout per feed
+const FEED_CACHE_TTL_MS = 2 * 60000;  // 2 min cache per feed
+const DESC_TRUNCATE_LEN = 500;        // Max description length in output
+const MIN_CLUSTER_WORDS = 5;          // Min keyword count to attempt clustering
+
 app.use(cors());
 app.use(compression());
 app.use(express.json());
@@ -16,6 +24,10 @@ app.use(express.json());
 
 let latestNews = [];
 let lastFetchTime = 0;
+
+// ── Per-feed RSS cache ───────────────────────────────────────────────────────
+// Maps feed URL → { ts: Date.now(), articles: [...] }
+const feedCache = new Map();
 
 // ── Country code → capital coords mapping ────────────────────────────────────
 
@@ -271,6 +283,12 @@ function clusterArticles(articles) {
   const clusters = [];
   const used = new Set();
 
+  // Pre-compute keywords for all articles (avoids recomputing in inner loop)
+  const keywordsCache = new Array(articles.length);
+  for (let i = 0; i < articles.length; i++) {
+    keywordsCache[i] = getKeywords(articles[i].title);
+  }
+
   for (let i = 0; i < articles.length; i++) {
     if (used.has(i)) continue;
 
@@ -286,25 +304,31 @@ function clusterArticles(articles) {
       isBreaking: false,
     };
 
-    // Find similar articles
-    const wordsA = getKeywords(articles[i].title);
+    const wordsA = keywordsCache[i];
 
-    for (let j = i + 1; j < articles.length; j++) {
-      if (used.has(j)) continue;
+    // Skip clustering for articles with very short titles (< 5 keywords)
+    // — too generic to cluster meaningfully, just leave as singleton
+    if (wordsA.size >= MIN_CLUSTER_WORDS) {
+      for (let j = i + 1; j < articles.length; j++) {
+        if (used.has(j)) continue;
 
-      const wordsB = getKeywords(articles[j].title);
-      const similarity = jaccardSimilarity(wordsA, wordsB);
+        const wordsB = keywordsCache[j];
+        // Early exit: skip if the other title is also too short
+        if (wordsB.size < MIN_CLUSTER_WORDS) continue;
 
-      if (similarity >= 0.25) {
-        cluster.articles.push(articles[j]);
-        used.add(j);
+        const similarity = jaccardSimilarity(wordsA, wordsB);
 
-        // Update cluster timing
-        if (articles[j].publishedAt < cluster.firstPublished) {
-          cluster.firstPublished = articles[j].publishedAt;
-        }
-        if (articles[j].publishedAt > cluster.lastUpdated) {
-          cluster.lastUpdated = articles[j].publishedAt;
+        if (similarity >= 0.25) {
+          cluster.articles.push(articles[j]);
+          used.add(j);
+
+          // Update cluster timing
+          if (articles[j].publishedAt < cluster.firstPublished) {
+            cluster.firstPublished = articles[j].publishedAt;
+          }
+          if (articles[j].publishedAt > cluster.lastUpdated) {
+            cluster.lastUpdated = articles[j].publishedAt;
+          }
         }
       }
     }
@@ -346,9 +370,15 @@ function getKeywords(text) {
 }
 
 function jaccardSimilarity(setA, setB) {
-  const intersection = new Set([...setA].filter(x => setB.has(x)));
-  const union = new Set([...setA, ...setB]);
-  return union.size === 0 ? 0 : intersection.size / union.size;
+  if (setA.size === 0 && setB.size === 0) return 0;
+  let intersection = 0;
+  // Iterate over the smaller set for speed
+  const [smaller, larger] = setA.size <= setB.size ? [setA, setB] : [setB, setA];
+  for (const word of smaller) {
+    if (larger.has(word)) intersection++;
+  }
+  const union = setA.size + setB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
 }
 
 // ── RSS Feed sources ─────────────────────────────────────────────────────────
@@ -680,8 +710,21 @@ const RSS_FEEDS = [
 
 async function fetchRSSFeed(feed) {
   try {
-    const result = await rssParser.parseURL(feed.url);
-    return (result.items || []).slice(0, 25).map((item, idx) => {
+    // ── Cache check: reuse if fetched < 2 min ago ──
+    const cached = feedCache.get(feed.url);
+    if (cached && (Date.now() - cached.ts) < FEED_CACHE_TTL_MS) {
+      return cached.articles;
+    }
+
+    // ── Timeout: skip feeds that take > 10s ──
+    const result = await Promise.race([
+      rssParser.parseURL(feed.url),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Feed timeout')), FEED_TIMEOUT_MS)
+      ),
+    ]);
+
+    const articles = (result.items || []).slice(0, 50).map((item, idx) => {
       const title = item.title || '';
       const description = item.contentSnippet || item.content || '';
       const location = extractLocation(`${title} ${description}`);
@@ -702,19 +745,47 @@ async function fetchRSSFeed(feed) {
         _category: category,
       };
     });
+
+    // Store in cache
+    feedCache.set(feed.url, { ts: Date.now(), articles });
+    return articles;
   } catch (err) {
     console.error(`[RSS] Failed to fetch ${feed.name}:`, err.message);
+    // On failure, return stale cache if available
+    const stale = feedCache.get(feed.url);
+    if (stale) return stale.articles;
     return [];
   }
+}
+
+// ── Concurrency-limited parallel executor ────────────────────────────────────
+
+async function runWithConcurrency(tasks, limit) {
+  const results = [];
+  let idx = 0;
+
+  async function worker() {
+    while (idx < tasks.length) {
+      const i = idx++;
+      try {
+        results[i] = { status: 'fulfilled', value: await tasks[i]() };
+      } catch (err) {
+        results[i] = { status: 'rejected', reason: err };
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
 }
 
 async function fetchAllNews() {
   console.log(`[News] Fetching from ${RSS_FEEDS.length} RSS feeds...`);
   const startTime = Date.now();
 
-  const results = await Promise.allSettled(
-    RSS_FEEDS.map(feed => fetchRSSFeed(feed))
-  );
+  const tasks = RSS_FEEDS.map(feed => () => fetchRSSFeed(feed));
+  const results = await runWithConcurrency(tasks, CONCURRENCY_LIMIT);
 
   const allArticles = [];
   let successCount = 0;
@@ -741,14 +812,17 @@ async function fetchAllNews() {
   const formatted = clusters.map(c => ({
     id: c.id,
     title: c.title,
-    summary: c.summary,
+    summary: c.summary && c.summary.length > DESC_TRUNCATE_LEN
+      ? c.summary.slice(0, DESC_TRUNCATE_LEN) + '…'
+      : c.summary,
     articles: c.articles
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-      .slice(0, 10)
       .map(a => ({
       id: a.id,
       title: a.title,
-      description: a.description,
+      description: a.description && a.description.length > DESC_TRUNCATE_LEN
+        ? a.description.slice(0, DESC_TRUNCATE_LEN) + '…'
+        : a.description,
       url: a.url,
       imageUrl: a.imageUrl,
       publishedAt: a.publishedAt,

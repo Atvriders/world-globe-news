@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { NewsCluster } from '../../types';
 import {
@@ -90,8 +90,12 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     .filter(Boolean)
     .join(', ');
 
-  const sortedArticles = [...cluster.articles].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+  const sortedArticles = useMemo(
+    () =>
+      [...cluster.articles].sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+      ),
+    [cluster.articles],
   );
 
   // ── Styles ──────────────────────────────────────────────────────────────
@@ -104,11 +108,12 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     height: 'calc(100vh - 56px)',
     zIndex: 1200,
     background: 'rgba(14, 14, 20, 0.92)',
-    backdropFilter: 'blur(28px)',
-    WebkitBackdropFilter: 'blur(28px)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     borderLeft: '1px solid rgba(255,255,255,0.06)',
     boxShadow: '-8px 0 40px rgba(0,0,0,0.55)',
     transform: visible ? 'translateX(0)' : 'translateX(100%)',
+    willChange: 'transform',
     transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
     display: 'flex',
     flexDirection: 'column',

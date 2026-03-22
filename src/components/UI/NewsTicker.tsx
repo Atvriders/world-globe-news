@@ -102,7 +102,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
   );
 };
 
-export default NewsTicker;
+export default React.memo(NewsTicker);
 
 // ── Inline keyframes ─────────────────────────────────────────────────────────
 
@@ -143,8 +143,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     background: 'rgba(18, 18, 24, 0.7)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     borderTop: '1px solid rgba(255,255,255,0.06)',
     fontFamily:
       "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
@@ -203,6 +203,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     whiteSpace: 'nowrap',
     animation: 'ticker-scroll 7040s linear infinite',
+    willChange: 'transform',
     paddingLeft: 16,
   },
 

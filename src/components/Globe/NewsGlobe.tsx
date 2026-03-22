@@ -3,6 +3,12 @@ import Globe from 'react-globe.gl';
 import { NewsCluster, GlobeNewsPin, NewsCategory } from '../../types';
 import { CATEGORY_COLORS, GLOBE } from '../../data/theme';
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const MAX_VISIBLE_PINS = 150;
+const MAX_RING_PINS = 10;
+const RESIZE_DEBOUNCE_MS = 200;
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface NewsGlobeProps {
@@ -118,25 +124,45 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   const altitudeRef = useRef<number>(2.3);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
 
-  // Resize observer — globe scales to container
+  // Resize observer — debounced so it doesn't fire on every frame during resize
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const ro = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
-      setDimensions({ width, height });
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        setDimensions({ width, height });
+      }, RESIZE_DEBOUNCE_MS);
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+    };
   }, []);
 
-  // Build pins
-  const pins = useMemo(() => buildPins(clusters), [clusters]);
+  // Build all pins, then limit to top 150 by importance
+  const allPins = useMemo(() => buildPins(clusters), [clusters]);
 
-  // Breaking pins get ring animations
-  const breakingPins = useMemo(() => pins.filter(p => p.isBreaking), [pins]);
+  const pins = useMemo(() => {
+    if (allPins.length <= MAX_VISIBLE_PINS) return allPins;
+    return [...allPins]
+      .sort((a, b) => b.cluster.importance - a.cluster.importance)
+      .slice(0, MAX_VISIBLE_PINS);
+  }, [allPins]);
 
-  // Arcs from selected cluster to same-category pins
+  // Breaking pins get ring animations — limit to top 10 by importance
+  const breakingPins = useMemo(() => {
+    const breaking = pins.filter(p => p.isBreaking);
+    if (breaking.length <= MAX_RING_PINS) return breaking;
+    return [...breaking]
+      .sort((a, b) => b.cluster.importance - a.cluster.importance)
+      .slice(0, MAX_RING_PINS);
+  }, [pins]);
+
+  // Arcs from selected cluster to same-category pins (only when cluster selected)
   const arcs = useMemo(
     () => buildArcs(pins, selectedCluster),
     [pins, selectedCluster]
@@ -260,7 +286,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       bumpImageUrl={GLOBE.bumpImageUrl}
       backgroundImageUrl={GLOBE.backgroundImageUrl}
       atmosphereColor="#7c5cfc"
-      atmosphereAltitude={0.3}
+      atmosphereAltitude={0.2}
       // Points layer — slightly translucent colored dots, merged for performance
       pointsData={pins}
       pointLat={pointLat}
@@ -270,7 +296,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       pointRadius={pointRadius}
       pointsMerge={false}
       onPointClick={handlePointClick}
-      // Rings layer — slow breathing pulse for breaking news
+      // Rings layer — slow breathing pulse for breaking news (top 10 only)
       ringsData={breakingPins}
       ringLat={ringLat}
       ringLng={ringLng}
@@ -290,8 +316,8 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       arcDashGap={arcDashGap}
       arcDashAnimateTime={arcDashAnimateTime}
       // Performance
-      animateIn={true}
-      waitForGlobeReady={true}
+      animateIn={false}
+      waitForGlobeReady={false}
     />
     </div>
   );

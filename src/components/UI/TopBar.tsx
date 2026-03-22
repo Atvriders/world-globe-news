@@ -33,7 +33,7 @@ const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   entertainment: ['#f97316', '#fb923c'],
 };
 
-/** Simulated story counts per category */
+/** Default story counts per category (updated at runtime) */
 const STORY_COUNTS: Record<string, number> = {
   all: 142,
   world: 34,
@@ -118,8 +118,8 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         justifyContent: 'space-between',
         padding: '0 20px',
         background: 'rgba(18, 18, 24, 0.82)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         boxSizing: 'border-box',
       }}

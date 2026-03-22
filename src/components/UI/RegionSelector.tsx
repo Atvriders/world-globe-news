@@ -46,8 +46,8 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
           left: 16,
           zIndex: 1100,
           background: 'rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 20,
           padding: '4px 6px',
@@ -131,4 +131,4 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
   );
 };
 
-export default RegionSelector;
+export default React.memo(RegionSelector);

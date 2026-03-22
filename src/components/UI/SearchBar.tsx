@@ -58,8 +58,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
     background: 'rgba(255, 255, 255, 0.06)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
     borderRadius: 21,
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     boxShadow: focused
       ? '0 0 0 2px rgba(124, 92, 252, 0.3), 0 8px 32px rgba(124, 92, 252, 0.15)'
       : '0 8px 32px rgba(0, 0, 0, 0.3)',

@@ -192,8 +192,8 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     alignItems: 'center',
     gap: 8,
     background: hoveredTab ? 'rgba(18, 18, 24, 0.95)' : 'rgba(18, 18, 24, 0.85)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRight: 'none',
     borderRadius: '12px 0 0 12px',
@@ -214,8 +214,8 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     width: 380,
     height: '100%',
     background: 'rgba(18, 18, 24, 0.85)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     borderLeft: '1px solid rgba(255,255,255,0.06)',
     boxShadow: '-8px 0 40px rgba(0,0,0,0.4)',
     display: 'flex',
@@ -225,6 +225,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     transform: open ? 'translateX(0)' : 'translateX(100%)',
     opacity: open ? 1 : 0,
     pointerEvents: open ? 'auto' : 'none',
+    willChange: 'transform, opacity',
   };
 
   // ── Render helpers ──

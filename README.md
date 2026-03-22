@@ -2,8 +2,6 @@
 
 Interactive 3D globe news viewer — browse breaking news from around the world pinned to real locations with multi-source aggregation.
 
-![License](https://img.shields.io/badge/license-MIT-blue)
-
 ## Features
 
 - **3D Interactive Globe** — Soft, animated globe with purple atmosphere glow, auto-rotation (stops when zoomed in), and cinematic fly-to animations
@@ -146,7 +144,3 @@ world-globe-news/
 **Sports:** ESPN, BBC Sport, Sky Sports, Marca, Goal.com
 
 **Entertainment:** Variety, Hollywood Reporter, Rolling Stone, Pitchfork, Deadline, Screen Rant, IGN, Polygon, AV Club
-
-## License
-
-MIT
