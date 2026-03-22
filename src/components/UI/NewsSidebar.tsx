@@ -13,7 +13,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 // ── Types ───────────────────────────────────────────────────────────────────
 
 type SortMode = 'breaking' | 'newest' | 'sources' | 'category';
-type SidebarTab = 'trending' | 'feed' | 'sources';
+type SidebarTab = 'usa' | 'trending' | 'feed' | 'sources';
 
 interface NewsSidebarProps {
   clusters: NewsCluster[];
@@ -483,7 +483,8 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
   const renderTabBar = () => {
     const tabs: { key: SidebarTab; label: string }[] = [
-      { key: 'trending', label: '🔥 Trending' },
+      { key: 'usa', label: '\u{1F1FA}\u{1F1F8} USA' },
+      { key: 'trending', label: '\u{1F525} Trending' },
       { key: 'feed', label: 'Feed' },
       { key: 'sources', label: 'Sources' },
     ];
@@ -1109,6 +1110,133 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
               )}
             </div>
           </>
+        )}
+
+        {/* ── USA tab content ── */}
+        {activeTab === 'usa' && (
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
+            {(() => {
+              const US_KEYWORDS = ['congress', 'senate', 'white house', 'pentagon', 'trump', 'biden', 'republican', 'democrat', 'fbi', 'cia', 'federal'];
+              const usStories = filtered.filter((cluster) => {
+                if (cluster.location?.countryCode === 'US') return true;
+                if (cluster.location?.country && cluster.location.country.includes('United States')) return true;
+                if (cluster.articles.some((a: any) => a.country === 'US')) return true;
+                const titleLower = cluster.title.toLowerCase();
+                if (US_KEYWORDS.some((kw) => titleLower.includes(kw))) return true;
+                return false;
+              });
+              const sorted = [...usStories].sort((a, b) => {
+                const srcDiff = b.articles.length - a.articles.length;
+                if (srcDiff !== 0) return srcDiff;
+                return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+              }).slice(0, 30);
+
+              if (sorted.length === 0) {
+                return (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '48px 24px',
+                      margin: '24px 16px',
+                      background: 'rgba(255,255,255,0.04)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 14,
+                      gap: 10,
+                    }}
+                  >
+                    <span style={{ fontSize: 32, opacity: 0.4 }}>🇺🇸</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: UI.textSecondary, textAlign: 'center' }}>
+                      No US stories found
+                    </span>
+                    <span style={{ fontSize: 11, color: UI.textMuted, textAlign: 'center', lineHeight: 1.5 }}>
+                      Try adjusting your time filter
+                      <br />
+                      or broadening your search.
+                    </span>
+                  </div>
+                );
+              }
+
+              return sorted.map((cluster, i) => (
+                <div
+                  key={cluster.id}
+                  onClick={() => onSelectCluster(cluster)}
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    padding: '10px 16px',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid rgba(255,255,255,0.03)',
+                    background: selectedCluster?.id === cluster.id ? 'rgba(99, 102, 241, 0.08)' : hoveredCard === cluster.id ? 'rgba(255,255,255,0.04)' : 'transparent',
+                    transition: 'background 0.15s ease',
+                    alignItems: 'flex-start',
+                  }}
+                  onMouseEnter={() => setHoveredCard(cluster.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  {/* Rank number */}
+                  <span style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: i < 3 ? '#ef4444' : '#3a3545',
+                    minWidth: 28,
+                    textAlign: 'center',
+                    lineHeight: 1.2,
+                    flexShrink: 0,
+                  }}>
+                    {i + 1}
+                  </span>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Title */}
+                    <div style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#f5f0eb',
+                      lineHeight: 1.4,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {cluster.title}
+                    </div>
+
+                    {/* Meta */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, fontSize: 10, color: '#6b6578' }}>
+                      {cluster.isBreaking && (
+                        <span style={{
+                          background: 'rgba(239, 68, 68, 0.15)',
+                          color: '#ef4444',
+                          padding: '1px 6px',
+                          borderRadius: 6,
+                          fontSize: 9,
+                          fontWeight: 700,
+                        }}>
+                          BREAKING
+                        </span>
+                      )}
+                      <span style={{
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        color: '#a78bfa',
+                        padding: '1px 6px',
+                        borderRadius: 6,
+                        fontWeight: 700,
+                      }}>
+                        {cluster.articles.length} sources
+                      </span>
+                      <span>{cluster.location?.city || cluster.location?.country || ''}</span>
+                    </div>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
         )}
 
         {/* ── Trending tab content ── */}
