@@ -13,6 +13,27 @@ import { useNewsFetch } from './hooks/useNewsFetch';
 import { GLOBAL_CSS } from './data/theme';
 import { NewsCluster } from './types';
 
+// Error boundary to catch crashes and show error instead of black screen
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ background: '#121218', color: '#ff5252', padding: 40, fontFamily: 'monospace', height: '100vh' }}>
+          <h2 style={{ color: '#f5f0eb', marginBottom: 16 }}>Something went wrong</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.6 }}>{this.state.error.message}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, color: '#6b6578', marginTop: 12 }}>{this.state.error.stack}</pre>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 20, padding: '8px 16px', background: '#7c5cfc', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+            Try Again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   const { refetch } = useNewsFetch();
 
@@ -236,4 +257,10 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+const WrappedApp: React.FC = () => (
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
+
+export default WrappedApp;
