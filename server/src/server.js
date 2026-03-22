@@ -1886,6 +1886,27 @@ app.get('/api/news/stats', (req, res) => {
   });
 });
 
+// ── Trigger RSS refresh ──────────────────────────────────────────────────
+
+let isRefreshing = false;
+
+app.post('/api/news/refresh', async (req, res) => {
+  if (isRefreshing) {
+    return res.json({ status: 'already_refreshing', clusters: latestNews.length, lastFetch: lastFetchTime });
+  }
+  isRefreshing = true;
+  res.json({ status: 'started', message: 'RSS refresh started' });
+
+  try {
+    await fetchAllNews();
+    console.log('[Refresh] Manual RSS refresh complete');
+  } catch (err) {
+    console.error('[Refresh] Error:', err.message);
+  } finally {
+    isRefreshing = false;
+  }
+});
+
 // ── Similar articles by URL ──────────────────────────────────────────────
 
 app.get('/api/news/similar', async (req, res) => {

@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 }
 
 const App: React.FC = () => {
-  const { refetch } = useNewsFetch();
+  const { refetch, triggerRefresh } = useNewsFetch();
 
   const {
     clusters,
@@ -240,7 +240,7 @@ const App: React.FC = () => {
       <TopBar
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        onRefresh={refetch}
+        onRefresh={triggerRefresh}
       />
 
       <SearchBar

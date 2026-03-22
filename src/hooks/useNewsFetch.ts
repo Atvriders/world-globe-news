@@ -3,7 +3,7 @@ import { useStore } from './useStore';
 import { NewsCluster } from '../types';
 
 const API_BASE = '/api';
-const POLL_INTERVAL = 60_000; // 1 minute
+const POLL_INTERVAL = 30_000; // 30 seconds — more active updates
 
 export function useNewsFetch() {
   const {
@@ -17,11 +17,8 @@ export function useNewsFetch() {
 
   const fetchNews = useCallback(async () => {
     try {
-      // Fetch ALL news — filtering happens client-side in App.tsx filteredClusters
       const res = await fetch(`${API_BASE}/news`);
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const data = await res.json();
 
       if (isMounted.current && data.clusters && data.clusters.length > 0) {
@@ -41,7 +38,19 @@ export function useNewsFetch() {
     }
   }, [setClusters, setIsLoading, setError, setLastRefresh]);
 
-  // Initial fetch + polling
+  // Trigger server-side RSS refresh + then fetch updated data
+  const triggerRefresh = useCallback(async () => {
+    try {
+      // Tell server to re-fetch all RSS feeds
+      await fetch(`${API_BASE}/news/refresh`, { method: 'POST' });
+      // Wait a few seconds for server to get some data, then fetch
+      setTimeout(() => fetchNews(), 5000);
+    } catch (err) {
+      console.error('[Refresh] Trigger failed:', err);
+    }
+  }, [fetchNews]);
+
+  // Initial fetch + active polling
   useEffect(() => {
     isMounted.current = true;
     setIsLoading(true);
@@ -55,5 +64,5 @@ export function useNewsFetch() {
     };
   }, [fetchNews, setIsLoading]);
 
-  return { refetch: fetchNews };
+  return { refetch: fetchNews, triggerRefresh };
 }
