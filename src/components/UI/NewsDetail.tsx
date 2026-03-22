@@ -6,6 +6,7 @@ import {
   CATEGORY_ICONS,
   CATEGORY_GRADIENTS,
 } from '../../data/theme';
+import { getSourceByName, BIAS_COLORS, BIAS_LABELS } from '../../data/newsSources';
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -462,10 +463,33 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
                   onMouseLeave={() => setHoveredSource(null)}
                   onClick={() => setExpandedArticle(isExpanded ? null : article.id)}
                 >
-                  {/* Top row: dot + name + time */}
+                  {/* Top row: dot + name + bias pill + time */}
                   <div style={cardTopRow}>
                     <div style={dotStyle(color)} />
                     <span style={sourceNameStyle}>{article.source.name}</span>
+                    {(() => {
+                      const src = getSourceByName(article.source.name);
+                      if (!src) return null;
+                      const biasColor = BIAS_COLORS[src.bias];
+                      return (
+                        <span
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 600,
+                            padding: '1px 6px',
+                            borderRadius: 6,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            background: `${biasColor}26`,
+                            color: biasColor,
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {BIAS_LABELS[src.bias]}
+                        </span>
+                      );
+                    })()}
                     <span style={timeStyle}>{relativeTime(article.publishedAt)}</span>
                     <span style={{ fontSize: 10, color: '#6b6578', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0)' }}>&#9654;</span>
                   </div>

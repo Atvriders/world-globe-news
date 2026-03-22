@@ -76,6 +76,8 @@ export type TimeFilter = '1h' | '6h' | '24h' | '7d';
 
 // ── News Source (outlet metadata) ────────────────────────────────────────────
 
+export type NewsBias = 'left' | 'center-left' | 'center' | 'center-right' | 'right' | 'independent';
+
 export interface NewsSource {
   id: string;
   name: string;
@@ -84,6 +86,7 @@ export interface NewsSource {
   country: string;
   reliabilityTier: 1 | 2 | 3;
   url: string;
+  bias: NewsBias;
 }
 
 // ── App State (Zustand store) ────────────────────────────────────────────────
