@@ -14,7 +14,7 @@ import { GLOBAL_CSS } from './data/theme';
 import { NewsCluster } from './types';
 
 const App: React.FC = () => {
-  useNewsFetch();
+  const { refetch } = useNewsFetch();
 
   const {
     clusters,
@@ -105,6 +105,7 @@ const App: React.FC = () => {
       <TopBar
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
+        onRefresh={refetch}
       />
 
       <SearchBar

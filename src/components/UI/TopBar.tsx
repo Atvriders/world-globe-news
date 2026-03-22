@@ -5,6 +5,7 @@ import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_ICONS, UI } from '../../data
 interface TopBarProps {
   selectedCategory: NewsCategory | 'all';
   onCategoryChange: (cat: NewsCategory | 'all') => void;
+  onRefresh?: () => void;
 }
 
 const CATEGORIES: (NewsCategory | 'all')[] = [
@@ -62,7 +63,8 @@ function getCategoryLabel(cat: NewsCategory | 'all'): string {
   return CATEGORY_LABELS[cat];
 }
 
-const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) => {
+const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onRefresh }) => {
+  const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(formatUTCTime);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -384,6 +386,47 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
         >
           {totalStories} stories · {totalSources} sources
         </span>
+
+        {/* Update Sources button */}
+        {onRefresh && (
+          <>
+            <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+            <button
+              onClick={() => {
+                setRefreshing(true);
+                onRefresh();
+                setTimeout(() => setRefreshing(false), 3000);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '4px 10px',
+                background: refreshing ? 'rgba(124, 92, 252, 0.15)' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${refreshing ? 'rgba(124, 92, 252, 0.4)' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: 8,
+                color: refreshing ? '#7c5cfc' : '#a8a3b3',
+                fontSize: 10,
+                fontWeight: 600,
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: '0.04em',
+                cursor: refreshing ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{
+                display: 'inline-block',
+                fontSize: 12,
+                animation: refreshing ? 'spin 1s linear infinite' : 'none',
+              }}>
+                ↻
+              </span>
+              {refreshing ? 'Updating...' : 'Update Sources'}
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── Keyframes ─────────────────────────────────────── */}
