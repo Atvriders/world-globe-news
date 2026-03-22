@@ -422,6 +422,130 @@ function jaccardSimilarity(setA, setB) {
   return union === 0 ? 0 : intersection / union;
 }
 
+// ── Haversine distance (km) ──────────────────────────────────────────────
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Geographic proximity merge (second clustering pass) ──────────────────
+
+function mergeNearbyClusters(clusters) {
+  const MERGE_DISTANCE_KM = 100;
+  const used = new Set();
+  const merged = [];
+
+  for (let i = 0; i < clusters.length; i++) {
+    if (used.has(i)) continue;
+
+    const group = [clusters[i]];
+    used.add(i);
+
+    for (let j = i + 1; j < clusters.length; j++) {
+      if (used.has(j)) continue;
+      const locA = clusters[i].location;
+      const locB = clusters[j].location;
+      if (!locA || !locB) continue;
+
+      // Check distance against any cluster already in the group
+      let isNear = false;
+      for (const member of group) {
+        const mLoc = member.location;
+        if (!mLoc) continue;
+        if (haversineKm(mLoc.lat, mLoc.lng, locB.lat, locB.lng) <= MERGE_DISTANCE_KM) {
+          isNear = true;
+          break;
+        }
+      }
+      if (isNear) {
+        group.push(clusters[j]);
+        used.add(j);
+      }
+    }
+
+    // If only one cluster in this location group, keep it as-is
+    if (group.length === 1) {
+      merged.push(group[0]);
+      continue;
+    }
+
+    // Merge multiple clusters into a location group
+    const allArticles = group.flatMap(c => c.articles);
+
+    // Centroid of all cluster locations
+    let sumLat = 0, sumLng = 0, locCount = 0;
+    for (const c of group) {
+      if (c.location) {
+        sumLat += c.location.lat;
+        sumLng += c.location.lng;
+        locCount++;
+      }
+    }
+    const centroidLat = sumLat / locCount;
+    const centroidLng = sumLng / locCount;
+
+    // Location name: use the first cluster's location info (city or country)
+    const bestLoc = group[0].location;
+    const locationName = bestLoc?.city || bestLoc?.country || `${centroidLat.toFixed(1)}, ${centroidLng.toFixed(1)}`;
+
+    // Most common category
+    const catCounts = {};
+    for (const c of group) {
+      catCounts[c.category] = (catCounts[c.category] || 0) + 1;
+    }
+    let bestCat = group[0].category;
+    let bestCatCount = 0;
+    for (const [cat, count] of Object.entries(catCounts)) {
+      if (count > bestCatCount) { bestCat = cat; bestCatCount = count; }
+    }
+
+    // Collect story titles for summary
+    const storyTitles = group.map(c => c.title);
+    const summary = `${group.length} stories: ${storyTitles.join(', ')}`;
+
+    // Importance = sum capped at 10
+    const totalImportance = Math.min(10, group.reduce((sum, c) => sum + c.importance, 0));
+
+    // isBreaking if ANY cluster is breaking
+    const anyBreaking = group.some(c => c.isBreaking);
+
+    // Earliest first published, latest last updated
+    const firstPublished = group.reduce((earliest, c) =>
+      (!earliest || c.firstPublished < earliest) ? c.firstPublished : earliest, null);
+    const lastUpdated = group.reduce((latest, c) =>
+      (!latest || c.lastUpdated > latest) ? c.lastUpdated : latest, null);
+
+    merged.push({
+      id: `group-${centroidLat.toFixed(2)}-${centroidLng.toFixed(2)}`,
+      title: locationName,
+      summary,
+      articles: allArticles,
+      location: {
+        ...bestLoc,
+        lat: centroidLat,
+        lng: centroidLng,
+      },
+      category: bestCat,
+      importance: totalImportance,
+      isBreaking: anyBreaking,
+      firstPublished,
+      lastUpdated,
+    });
+  }
+
+  // Re-sort by importance then recency
+  merged.sort((a, b) => {
+    if (b.importance !== a.importance) return b.importance - a.importance;
+    return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+  });
+
+  return merged;
+}
+
 // ── RSS Feed sources ─────────────────────────────────────────────────────────
 
 const RSS_FEEDS = [
@@ -846,8 +970,11 @@ async function fetchAllNews() {
 
   console.log(`[News] ${withLocation.length} articles geocoded, ${withoutLocation.length} without location`);
 
-  // Cluster articles
-  const clusters = clusterArticles(withLocation);
+  // Cluster articles by topic, then merge nearby clusters by geography
+  const topicClusters = clusterArticles(withLocation);
+  const clusters = mergeNearbyClusters(topicClusters);
+
+  console.log(`[News] ${topicClusters.length} topic clusters → ${clusters.length} after geographic merge`);
 
   // Format for API response
   const formatted = clusters.map(c => ({

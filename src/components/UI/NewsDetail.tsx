@@ -104,6 +104,11 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     .filter(Boolean)
     .join(', ') || cluster.location?.countryCode || 'Unknown';
 
+  // Detect grouped pin (multiple stories merged at same location)
+  const isGrouped = cluster.articles.length > 3;
+  const storyCountMatch = cluster.summary?.match(/^(\d+)\s+stories?:/i);
+  const storyCount = storyCountMatch ? parseInt(storyCountMatch[1], 10) : null;
+
   // ── Styles ──────────────────────────────────────────────────────────────
 
   const panel: React.CSSProperties = {
@@ -413,38 +418,84 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
           )}
         </div>
 
-        {/* Headline */}
-        <div style={headline}>{cluster.title}</div>
+        {/* Headline — grouped pins show location as primary title */}
+        {isGrouped ? (
+          <>
+            <div style={headline}>{locationText}</div>
+            <div
+              style={{
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: '#908b9b',
+                marginBottom: 10,
+                marginTop: -4,
+              }}
+            >
+              {cluster.title}
+            </div>
+          </>
+        ) : (
+          <div style={headline}>{cluster.title}</div>
+        )}
 
         {/* Meta row */}
         <div style={metaRow}>
-          {locationText && (
+          {!isGrouped && locationText && (
             <>
               <span role="img" aria-label="location">📍</span>
               <span>{locationText}</span>
+              <span style={{ margin: '0 2px' }}>&middot;</span>
             </>
           )}
-          {locationText && <span style={{ margin: '0 2px' }}>&middot;</span>}
           <span role="img" aria-label="time">🕐</span>
           <span>{relativeTime(cluster.lastUpdated)}</span>
         </div>
 
-        {/* Source count badge */}
-        <div style={sourceCountBadge}>
-          Covered by&nbsp;
-          <span
-            style={{
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            {cluster.articles.length}
-          </span>
-          &nbsp;source{cluster.articles.length !== 1 ? 's' : ''}
-        </div>
+        {/* Source / story count badge */}
+        {isGrouped ? (
+          <div style={sourceCountBadge}>
+            <span
+              style={{
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {storyCount ?? '?'}
+            </span>
+            &nbsp;{storyCount === 1 ? 'story' : 'stories'}&nbsp;&middot;&nbsp;
+            <span
+              style={{
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {cluster.articles.length}
+            </span>
+            &nbsp;source{cluster.articles.length !== 1 ? 's' : ''}
+          </div>
+        ) : (
+          <div style={sourceCountBadge}>
+            Covered by&nbsp;
+            <span
+              style={{
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {cluster.articles.length}
+            </span>
+            &nbsp;source{cluster.articles.length !== 1 ? 's' : ''}
+          </div>
+        )}
       </div>
 
       {/* ── Scroll area ────────────────────────────────────────────── */}
