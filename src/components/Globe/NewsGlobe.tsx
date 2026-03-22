@@ -30,7 +30,7 @@ interface ArcDatum {
 
 function buildPins(clusters: NewsCluster[]): GlobeNewsPin[] {
   return clusters
-    .filter(c => c.location)
+    .filter(c => c.location && typeof c.location.lat === 'number' && typeof c.location.lng === 'number')
     .map(c => {
       // Size based on source count: more sources = bigger pin (range 0.3–0.8)
       const sourceCount = c.articles.length;
@@ -59,20 +59,25 @@ function buildArcs(
   pins: GlobeNewsPin[],
   selectedCluster: NewsCluster | null
 ): ArcDatum[] {
-  if (!selectedCluster || !selectedCluster.location) return [];
+  if (
+    !selectedCluster ||
+    !selectedCluster.location ||
+    typeof selectedCluster.location.lat !== 'number' ||
+    typeof selectedCluster.location.lng !== 'number'
+  ) return [];
 
+  const loc = selectedCluster.location;
   const category = selectedCluster.category as NewsCategory;
   const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.world;
-  // 30% opacity hex = 4D
   const arcColor = `${color}4D`;
 
   return pins
     .filter(
-      p => p.category === category && p.cluster.id !== selectedCluster.id
+      p => p.category === category && p.cluster.id !== selectedCluster.id && typeof p.lat === 'number' && typeof p.lng === 'number'
     )
     .map(p => ({
-      startLat: selectedCluster.location.lat,
-      startLng: selectedCluster.location.lng,
+      startLat: loc.lat,
+      startLng: loc.lng,
       endLat: p.lat,
       endLng: p.lng,
       color: arcColor,
