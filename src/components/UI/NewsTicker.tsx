@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
 import { NewsCluster } from '../../types';
-import { CATEGORY_GRADIENTS, CATEGORY_LABELS } from '../../data/theme';
+import { CATEGORY_ICONS } from '../../data/theme';
 
-// ── Props ───────────────────────────────────────────────────────────────────────
+// ── Props ────────────────────────────────────────────────────────────────────
 
 interface NewsTickerProps {
   clusters: NewsCluster[];
   onHeadlineClick: (cluster: NewsCluster) => void;
 }
 
-// ── Component ───────────────────────────────────────────────────────────────────
+// ── Component ────────────────────────────────────────────────────────────────
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) => {
   const hasBreaking = useMemo(
@@ -22,26 +22,23 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
 
     const buildItems = (keyPrefix: string) =>
       clusters.map((cluster, i) => {
-        const grad = CATEGORY_GRADIENTS[cluster.category];
+        const emoji = CATEGORY_ICONS[cluster.category] ?? '📰';
+        const source = cluster.articles?.[0]?.source?.name;
+
         return (
           <React.Fragment key={`${keyPrefix}-${cluster.id}`}>
-            {i > 0 && <span style={styles.separator}>{'\u25C6'}</span>}
+            {i > 0 && <span style={styles.separator}>|</span>}
             <span
+              className="news-ticker-item"
               style={styles.item}
               onClick={(e) => {
                 e.stopPropagation();
                 onHeadlineClick(cluster);
               }}
             >
-              <span
-                style={{
-                  ...styles.categoryPill,
-                  background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`,
-                }}
-              >
-                {CATEGORY_LABELS[cluster.category].toUpperCase()}
-              </span>
+              <span style={styles.emoji}>{emoji}</span>
               <span style={styles.headline}>{cluster.title}</span>
+              {source && <span style={styles.source}>({source})</span>}
             </span>
           </React.Fragment>
         );
@@ -50,7 +47,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
     return (
       <>
         {buildItems('a')}
-        <span style={styles.separator}>{'\u25C6'}</span>
+        <span style={styles.separator}>|</span>
         {buildItems('b')}
       </>
     );
@@ -62,19 +59,25 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
     <div style={styles.wrapper}>
       {/* Badge */}
       {hasBreaking ? (
-        <div className="news-ticker-badge-breaking" style={styles.badgeBreaking}>
-          BREAKING
+        <div style={styles.badge}>
+          <span style={styles.dotRed} />
+          <span style={styles.badgeTextRed}>BREAKING</span>
         </div>
       ) : (
-        <div style={styles.badgeLatest}>LATEST</div>
+        <div style={styles.badge}>
+          <span style={styles.dotBlue} />
+          <span style={styles.badgeTextBlue}>LATEST</span>
+        </div>
       )}
 
       {/* Scrolling track */}
       <div className="news-ticker-track" style={styles.track}>
-        <div className="news-ticker-scroll" style={styles.scroll}>{items}</div>
+        <div className="news-ticker-scroll" style={styles.scroll}>
+          {items}
+        </div>
       </div>
 
-      {/* Inline keyframes */}
+      {/* Inline keyframes + hover rules */}
       <style>{tickerCSS}</style>
     </div>
   );
@@ -82,33 +85,22 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
 
 export default NewsTicker;
 
-// ── Inline keyframes ────────────────────────────────────────────────────────────
+// ── Inline keyframes ─────────────────────────────────────────────────────────
 
 const tickerCSS = `
 @keyframes ticker-scroll {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-@keyframes badge-gradient-cycle {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.news-ticker-track {
-  cursor: default;
-}
-.news-ticker-track:hover {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='8' fill='rgba(124,92,252,0.25)' stroke='rgba(124,92,252,0.6)' stroke-width='1.5'/></svg>") 10 10, pointer;
-}
 .news-ticker-track:hover .news-ticker-scroll {
   animation-play-state: paused;
 }
-.news-ticker-badge-breaking {
-  animation: badge-gradient-cycle 3s ease infinite;
+.news-ticker-item:hover {
+  filter: brightness(1.25);
 }
 `;
 
-// ── Styles ──────────────────────────────────────────────────────────────────────
+// ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: {
@@ -116,51 +108,55 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 0,
     left: 0,
     width: '100%',
-    height: 40,
+    height: 36,
     zIndex: 999,
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(18, 18, 24, 0.85)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    background: 'rgba(18, 18, 24, 0.7)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     borderTop: '1px solid rgba(255,255,255,0.06)',
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     fontSize: 12,
     overflow: 'hidden',
     userSelect: 'none',
   },
 
-  /* ── Badges ─────────────────── */
-  badgeBreaking: {
+  /* ── Badge ──────────────────── */
+  badge: {
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 0 0 10px',
-    padding: '4px 14px',
-    borderRadius: 10,
-    background: 'linear-gradient(135deg, #ff416c, #ff4b2b, #ff416c, #ff4b2b)',
-    backgroundSize: '300% 300%',
-    color: '#fff',
-    fontWeight: 700,
-    fontSize: 11,
-    letterSpacing: '0.1em',
+    gap: 6,
+    margin: '0 0 0 12px',
     whiteSpace: 'nowrap',
   },
-  badgeLatest: {
+  dotRed: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: '#ef4444',
     flexShrink: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 0 0 10px',
-    padding: '4px 14px',
-    borderRadius: 10,
-    background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
-    color: '#fff',
+  },
+  dotBlue: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: '#7c5cfc',
+    flexShrink: 0,
+  },
+  badgeTextRed: {
+    color: '#ef4444',
     fontWeight: 700,
     fontSize: 11,
-    letterSpacing: '0.1em',
-    whiteSpace: 'nowrap',
+    letterSpacing: '0.08em',
+  },
+  badgeTextBlue: {
+    color: '#7c5cfc',
+    fontWeight: 700,
+    fontSize: 11,
+    letterSpacing: '0.08em',
   },
 
   /* ── Scrolling track ────────── */
@@ -170,47 +166,47 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     display: 'flex',
     alignItems: 'center',
+    cursor: 'default',
   },
   scroll: {
     display: 'inline-flex',
     alignItems: 'center',
     whiteSpace: 'nowrap',
-    animation: 'ticker-scroll 60s linear infinite',
-    paddingLeft: 20,
+    animation: 'ticker-scroll 80s linear infinite',
+    paddingLeft: 16,
   },
 
   /* ── Items ──────────────────── */
   item: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 7,
+    gap: 5,
     cursor: 'pointer',
     padding: '0 4px',
-    transition: 'opacity 0.2s ease',
+    transition: 'filter 0.2s ease',
   },
-  categoryPill: {
-    display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: 8,
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: '0.06em',
-    lineHeight: '16px',
+  emoji: {
+    fontSize: 12,
+    lineHeight: 1,
     flexShrink: 0,
   },
   headline: {
     color: '#f5f0eb',
     fontSize: 12,
     fontWeight: 500,
-    letterSpacing: '0.03em',
-    transition: 'color 0.2s ease, opacity 0.2s ease',
+    letterSpacing: '0.02em',
+  },
+  source: {
+    color: '#6b6578',
+    fontSize: 11,
+    fontWeight: 400,
+    marginLeft: 2,
   },
   separator: {
-    color: '#6b6578',
-    opacity: 0.4,
-    fontSize: 7,
-    margin: '0 16px',
+    color: 'rgba(107, 101, 120, 0.3)',
+    fontSize: 12,
+    margin: '0 14px',
     flexShrink: 0,
+    fontWeight: 300,
   },
 };

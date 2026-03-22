@@ -12,49 +12,77 @@ interface NewsGlobeProps {
   onFlyTo?: { lat: number; lng: number } | null;
 }
 
+interface ArcDatum {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color: string;
+}
+
 // ── Build globe pins from clusters ───────────────────────────────────────────
 
 function buildPins(clusters: NewsCluster[]): GlobeNewsPin[] {
   return clusters
     .filter(c => c.location)
-    .map(c => ({
-      id: c.id,
-      lat: c.location.lat,
-      lng: c.location.lng,
-      label: c.title.length > 50 ? c.title.slice(0, 50) + '…' : c.title,
-      size: c.isBreaking ? GLOBE.pinBreakingSize : GLOBE.pinBaseSize + (c.importance * 0.03),
-      color: CATEGORY_COLORS[c.category as NewsCategory] || CATEGORY_COLORS.world,
-      category: c.category as NewsCategory,
-      sourceCount: c.articles.length,
-      isBreaking: c.isBreaking,
-      cluster: c,
+    .map(c => {
+      // Size based on source count: more sources = bigger pin (range 0.3–0.8)
+      const sourceCount = c.articles.length;
+      const sizeFactor = Math.min(sourceCount / 8, 1); // normalize to 0–1
+      const baseSize = 0.3 + sizeFactor * 0.5; // 0.3 to 0.8
+      const size = c.isBreaking ? Math.max(baseSize, 0.65) : baseSize;
+
+      return {
+        id: c.id,
+        lat: c.location.lat,
+        lng: c.location.lng,
+        label: c.title,
+        size,
+        color: CATEGORY_COLORS[c.category as NewsCategory] || CATEGORY_COLORS.world,
+        category: c.category as NewsCategory,
+        sourceCount,
+        isBreaking: c.isBreaking,
+        cluster: c,
+      };
+    });
+}
+
+// ── Build arcs from selected pin to same-category pins ───────────────────────
+
+function buildArcs(
+  pins: GlobeNewsPin[],
+  selectedCluster: NewsCluster | null
+): ArcDatum[] {
+  if (!selectedCluster || !selectedCluster.location) return [];
+
+  const category = selectedCluster.category as NewsCategory;
+  const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.world;
+  // 30% opacity hex = 4D
+  const arcColor = `${color}4D`;
+
+  return pins
+    .filter(
+      p => p.category === category && p.cluster.id !== selectedCluster.id
+    )
+    .map(p => ({
+      startLat: selectedCluster.location.lat,
+      startLng: selectedCluster.location.lng,
+      endLat: p.lat,
+      endLng: p.lng,
+      color: arcColor,
     }));
 }
 
-// ── Module-level accessor functions (no inline functions for GlobeGL) ────────
+// ── Module-level accessor functions (no inline closures for GlobeGL) ─────────
 
+// Points
 function pointLat(d: object) { return (d as GlobeNewsPin).lat; }
 function pointLng(d: object) { return (d as GlobeNewsPin).lng; }
-function pointAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.06 : 0.02; }
+function pointAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.04 : 0.01; }
 function pointColor(d: object) { return (d as GlobeNewsPin).color; }
 function pointRadius(d: object) { return (d as GlobeNewsPin).size; }
 
-function labelLat(d: object) { return (d as GlobeNewsPin).lat; }
-function labelLng(d: object) { return (d as GlobeNewsPin).lng; }
-function labelAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.08 : 0.04; }
-function labelText(d: object) {
-  const pin = d as GlobeNewsPin;
-  const count = pin.sourceCount > 1 ? ` [${pin.sourceCount}]` : '';
-  return `${pin.label}${count}`;
-}
-function labelSize(d: object) { return (d as GlobeNewsPin).isBreaking ? 1.4 : 0.9; }
-function labelColor(d: object) {
-  const pin = d as GlobeNewsPin;
-  return pin.isBreaking ? pin.color : '#f5f0eb';
-}
-function labelDotRadius(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.5 : 0.3; }
-const LABEL_RESOLUTION = 2;
-
+// Rings (breaking news pulse)
 function ringLat(d: object) { return (d as GlobeNewsPin).lat; }
 function ringLng(d: object) { return (d as GlobeNewsPin).lng; }
 function ringColor(d: object) {
@@ -64,6 +92,17 @@ function ringColor(d: object) {
 function ringMaxRadius() { return 4; }
 function ringPropagationSpeed() { return 1.5; }
 function ringRepeatPeriod() { return 2000; }
+
+// Arcs
+function arcStartLat(d: object) { return (d as ArcDatum).startLat; }
+function arcStartLng(d: object) { return (d as ArcDatum).startLng; }
+function arcEndLat(d: object) { return (d as ArcDatum).endLat; }
+function arcEndLng(d: object) { return (d as ArcDatum).endLng; }
+function arcColor(d: object) { return (d as ArcDatum).color; }
+function arcStroke() { return GLOBE.arcStroke; }
+function arcDashLength() { return 0.4; }
+function arcDashGap() { return 0.2; }
+function arcDashAnimateTime() { return 2000; }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -81,12 +120,17 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   // Breaking pins get ring animations
   const breakingPins = useMemo(() => pins.filter(p => p.isBreaking), [pins]);
 
-  // Handle pin click
+  // Arcs from selected cluster to same-category pins
+  const arcs = useMemo(
+    () => buildArcs(pins, selectedCluster),
+    [pins, selectedCluster]
+  );
+
+  // Handle pin click — open detail panel + fly to location
   const handlePointClick = useCallback((point: object) => {
     const pin = point as GlobeNewsPin;
     onPinClick(pin.cluster);
 
-    // Fly to pin
     if (globeRef.current) {
       globeRef.current.pointOfView(
         { lat: pin.lat, lng: pin.lng, altitude: 1.5 },
@@ -94,10 +138,6 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       );
     }
   }, [onPinClick]);
-
-  const handleLabelClick = useCallback((label: object) => {
-    handlePointClick(label);
-  }, [handlePointClick]);
 
   // External fly-to
   useEffect(() => {
@@ -114,7 +154,6 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     if (globeRef.current) {
       globeRef.current.pointOfView({ lat: 25, lng: 0, altitude: 2.0 }, 0);
 
-      // Configure controls
       const controls = globeRef.current.controls();
       if (controls) {
         controls.autoRotate = false;
@@ -134,7 +173,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       backgroundImageUrl={GLOBE.backgroundImageUrl}
       atmosphereColor={GLOBE.atmosphereColor}
       atmosphereAltitude={GLOBE.atmosphereAltitude}
-      // Points layer — colored dots
+      // Points layer — clean colored dots, no text
       pointsData={pins}
       pointLat={pointLat}
       pointLng={pointLng}
@@ -143,17 +182,6 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       pointRadius={pointRadius}
       pointsMerge={false}
       onPointClick={handlePointClick}
-      // Labels layer — headline text
-      labelsData={pins}
-      labelLat={labelLat}
-      labelLng={labelLng}
-      labelAltitude={labelAlt}
-      labelText={labelText}
-      labelSize={labelSize}
-      labelColor={labelColor}
-      labelDotRadius={labelDotRadius}
-      labelResolution={LABEL_RESOLUTION}
-      onLabelClick={handleLabelClick}
       // Rings layer — breaking news pulse
       ringsData={breakingPins}
       ringLat={ringLat}
@@ -162,6 +190,17 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       ringMaxRadius={ringMaxRadius}
       ringPropagationSpeed={ringPropagationSpeed}
       ringRepeatPeriod={ringRepeatPeriod}
+      // Arcs layer — connects selected pin to same-category pins
+      arcsData={arcs}
+      arcStartLat={arcStartLat}
+      arcStartLng={arcStartLng}
+      arcEndLat={arcEndLat}
+      arcEndLng={arcEndLng}
+      arcColor={arcColor}
+      arcStroke={arcStroke}
+      arcDashLength={arcDashLength}
+      arcDashGap={arcDashGap}
+      arcDashAnimateTime={arcDashAnimateTime}
       // Performance
       animateIn={true}
       waitForGlobeReady={true}

@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { NewsCluster } from '../../types';
 import {
-  CATEGORY_COLORS,
   CATEGORY_LABELS,
   CATEGORY_ICONS,
   CATEGORY_GRADIENTS,
-  UI,
 } from '../../data/theme';
 
 // ── Props ───────────────────────────────────────────────────────────────────
@@ -37,17 +35,44 @@ function sourceColor(name: string): string {
   return `hsl(${hue}, 65%, 55%)`;
 }
 
+// ── Keyframe injection (once) ───────────────────────────────────────────────
+
+const STYLE_ID = 'news-detail-keyframes';
+function ensureKeyframes() {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = STYLE_ID;
+  style.textContent = `
+    @keyframes nd-breaking-gradient {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes nd-card-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) => {
   const [visible, setVisible] = useState(false);
   const [hoveredSource, setHoveredSource] = useState<string | null>(null);
   const [flyHover, setFlyHover] = useState(false);
-  const [closeHover, setCloseHover] = useState(false);
+  const [backHover, setBackHover] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [summaryHover, setSummaryHover] = useState(false);
 
-  // Animate in when cluster changes
+  useEffect(() => ensureKeyframes(), []);
+
+  // Animate in when cluster changes; reset summary
   useEffect(() => {
     if (cluster) {
+      setSummaryOpen(false);
       const t = requestAnimationFrame(() => setVisible(true));
       return () => cancelAnimationFrame(t);
     } else {
@@ -64,9 +89,9 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     .filter(Boolean)
     .join(', ');
 
-  const sortedArticles = [...cluster.articles].sort((a, b) => {
-    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-  });
+  const sortedArticles = [...cluster.articles].sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+  );
 
   // ── Styles ──────────────────────────────────────────────────────────────
 
@@ -75,15 +100,15 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     top: 56,
     right: 0,
     width: 420,
-    height: 'calc(100vh - 92px)',
+    height: 'calc(100vh - 56px)',
     zIndex: 1200,
-    background: 'rgba(18, 18, 24, 0.9)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
+    background: 'rgba(14, 14, 20, 0.92)',
+    backdropFilter: 'blur(28px)',
+    WebkitBackdropFilter: 'blur(28px)',
     borderLeft: '1px solid rgba(255,255,255,0.06)',
-    boxShadow: '-8px 0 40px rgba(0,0,0,0.5)',
+    boxShadow: '-8px 0 40px rgba(0,0,0,0.55)',
     transform: visible ? 'translateX(0)' : 'translateX(100%)',
-    transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -91,17 +116,28 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
       "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   };
 
-  const header: React.CSSProperties = {
-    padding: '20px 24px',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
+  // ── Header ──────────────────────────────────────────────────────────────
+
+  const headerStyle: React.CSSProperties = {
+    padding: 20,
     flexShrink: 0,
+    borderBottom: '1px solid rgba(255,255,255,0.05)',
   };
 
-  const badgeRow: React.CSSProperties = {
-    display: 'flex',
+  const backBtn: React.CSSProperties = {
+    display: 'inline-flex',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
+    gap: 6,
+    background: 'none',
+    border: 'none',
+    color: backHover ? '#ddd' : '#8a8494',
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+    padding: '4px 0',
+    marginBottom: 14,
+    transition: 'color 0.2s ease',
+    fontFamily: 'inherit',
   };
 
   const categoryPill: React.CSSProperties = {
@@ -130,80 +166,101 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     color: '#fff',
     background: 'linear-gradient(90deg, #ff416c, #ff4b2b, #ff416c)',
     backgroundSize: '200% 200%',
-    animation: 'breaking-gradient 3s ease infinite',
+    animation: 'nd-breaking-gradient 3s ease infinite',
     textTransform: 'uppercase',
   };
 
-  const closeBtnStyle: React.CSSProperties = {
-    marginLeft: 'auto',
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    background: closeHover ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    color: closeHover ? '#fff' : '#a8a3b3',
-    fontSize: 18,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s ease',
-    boxShadow: closeHover ? '0 0 12px rgba(124,92,252,0.3)' : 'none',
-    padding: 0,
-    lineHeight: 1,
-  };
+  // ── Hero ────────────────────────────────────────────────────────────────
 
   const headline: React.CSSProperties = {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 700,
     color: '#f5f0eb',
-    lineHeight: 1.4,
-    marginBottom: 12,
+    lineHeight: 1.5,
+    marginTop: 14,
+    marginBottom: 10,
   };
 
   const metaRow: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: 16,
+    flexWrap: 'wrap',
+    gap: 4,
     fontSize: 12,
-    color: '#a8a3b3',
+    color: '#7a7585',
+    marginBottom: 12,
   };
+
+  const sourceCountBadge: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    padding: '5px 14px',
+    borderRadius: 20,
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#c8c3d0',
+    background: 'rgba(124, 92, 252, 0.08)',
+    border: '1px solid rgba(124, 92, 252, 0.15)',
+    boxShadow: '0 0 12px rgba(124, 92, 252, 0.06)',
+  };
+
+  // ── Scroll body ─────────────────────────────────────────────────────────
 
   const scrollBody: React.CSSProperties = {
     flex: 1,
     overflowY: 'auto',
-    padding: '20px 24px',
+    padding: '16px 20px',
     display: 'flex',
     flexDirection: 'column',
-    gap: 20,
+    gap: 8,
   };
 
-  const sourcesHeader: React.CSSProperties = {
-    fontSize: 12,
-    fontWeight: 700,
-    letterSpacing: 0.5,
+  // ── Source cards ─────────────────────────────────────────────────────────
+
+  const sectionHeader: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   };
 
-  const summaryText: React.CSSProperties = {
+  const sectionTitle: React.CSSProperties = {
     fontSize: 13,
-    lineHeight: 1.6,
-    color: '#a8a3b3',
+    fontWeight: 700,
+    color: '#9b96a5',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   };
 
-  const sourceCard = (id: string): React.CSSProperties => {
+  const sectionCount: React.CSSProperties = {
+    fontSize: 11,
+    color: '#5e5969',
+    fontWeight: 500,
+  };
+
+  const sourceCard = (id: string, index: number): React.CSSProperties => {
     const isHovered = hoveredSource === id;
     return {
       display: 'flex',
-      alignItems: 'flex-start',
-      gap: 12,
+      flexDirection: 'column',
+      gap: 6,
       padding: 12,
-      borderRadius: 12,
-      background: isHovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+      borderRadius: 10,
+      background: isHovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+      border: '1px solid',
+      borderColor: isHovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
       transition: 'all 0.2s ease',
       cursor: 'pointer',
       textDecoration: 'none',
-      transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
+      animation: `nd-card-in 0.3s ease ${index * 50}ms both`,
     };
+  };
+
+  const cardTopRow: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
   };
 
   const dotStyle = (color: string): React.CSSProperties => ({
@@ -212,18 +269,90 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     borderRadius: '50%',
     background: color,
     flexShrink: 0,
-    marginTop: 5,
+    boxShadow: `0 0 6px ${color}44`,
   });
 
-  const footer: React.CSSProperties = {
-    padding: '16px 24px 20px',
-    borderTop: '1px solid rgba(255,255,255,0.06)',
+  const sourceNameStyle: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#e8e4f0',
+    flex: 1,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  };
+
+  const timeStyle: React.CSSProperties = {
+    fontSize: 11,
+    color: '#5e5969',
+    flexShrink: 0,
+    fontWeight: 500,
+  };
+
+  const articleTitleStyle = (id: string): React.CSSProperties => ({
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: hoveredSource === id ? '#7c9cfc' : '#8aafff',
+    textDecoration: hoveredSource === id ? 'underline' : 'none',
+    textDecorationColor: 'rgba(138, 175, 255, 0.4)',
+    transition: 'color 0.2s ease',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  });
+
+  const externalIcon = (id: string): React.CSSProperties => ({
+    fontSize: 11,
+    color: '#7c5cfc',
+    opacity: hoveredSource === id ? 1 : 0,
+    transition: 'opacity 0.2s ease',
+    flexShrink: 0,
+    marginLeft: 'auto',
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  });
+
+  // ── Summary toggle ──────────────────────────────────────────────────────
+
+  const summaryToggle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 8,
+    color: summaryHover ? '#c8c3d0' : '#7a7585',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: '8px 14px',
+    transition: 'all 0.2s ease',
+    fontFamily: 'inherit',
+    width: '100%',
+    justifyContent: 'center',
+    background: summaryHover
+      ? 'rgba(255,255,255,0.04)'
+      : 'rgba(255,255,255,0.02)',
+  } as React.CSSProperties;
+
+  const summaryContent: React.CSSProperties = {
+    fontSize: 13,
+    lineHeight: 1.6,
+    color: '#908b9b',
+    padding: '10px 0 4px',
+  };
+
+  // ── Action bar ──────────────────────────────────────────────────────────
+
+  const actionBar: React.CSSProperties = {
+    padding: '14px 20px 20px',
+    borderTop: '1px solid rgba(255,255,255,0.05)',
     flexShrink: 0,
   };
 
   const flyBtn: React.CSSProperties = {
     width: '100%',
-    height: 44,
+    height: 42,
     borderRadius: 12,
     border: 'none',
     fontSize: 14,
@@ -235,82 +364,88 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    transition: 'all 0.2s ease',
+    transition: 'all 0.25s ease',
     transform: flyHover ? 'scale(1.02)' : 'scale(1)',
     boxShadow: flyHover
-      ? '0 4px 20px rgba(124, 92, 252, 0.4), 0 0 30px rgba(0, 198, 255, 0.2)'
-      : '0 2px 8px rgba(0,0,0,0.3)',
+      ? '0 4px 24px rgba(124, 92, 252, 0.45), 0 0 40px rgba(0, 198, 255, 0.2)'
+      : '0 2px 10px rgba(0,0,0,0.3)',
+    fontFamily: 'inherit',
   };
 
   // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div style={panel}>
-      {/* Header */}
-      <div style={header}>
-        <div style={badgeRow}>
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <div style={headerStyle}>
+        {/* Back button */}
+        <button
+          style={backBtn}
+          onClick={onClose}
+          onMouseEnter={() => setBackHover(true)}
+          onMouseLeave={() => setBackHover(false)}
+        >
+          <span style={{ fontSize: 16, lineHeight: 1 }}>&larr;</span>
+          Back
+        </button>
+
+        {/* Badges row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={categoryPill}>
             {catIcon} {catLabel}
           </span>
-          {cluster.isBreaking && <span style={breakingBadge}>BREAKING</span>}
-          <button
-            style={closeBtnStyle}
-            onClick={onClose}
-            onMouseEnter={() => setCloseHover(true)}
-            onMouseLeave={() => setCloseHover(false)}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
-
-        <div style={headline}>{cluster.title}</div>
-
-        <div style={metaRow}>
-          {locationText && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span role="img" aria-label="location">📍</span>
-              {locationText}
+          {cluster.isBreaking && (
+            <span style={breakingBadge}>
+              <span style={{ fontSize: 10 }}>&#9679;</span> BREAKING
             </span>
           )}
+        </div>
+
+        {/* Headline */}
+        <div style={headline}>{cluster.title}</div>
+
+        {/* Meta row */}
+        <div style={metaRow}>
+          {locationText && (
+            <>
+              <span role="img" aria-label="location">📍</span>
+              <span>{locationText}</span>
+            </>
+          )}
+          {locationText && <span style={{ margin: '0 2px' }}>&middot;</span>}
+          <span role="img" aria-label="time">🕐</span>
           <span>{relativeTime(cluster.lastUpdated)}</span>
+        </div>
+
+        {/* Source count badge */}
+        <div style={sourceCountBadge}>
+          Covered by&nbsp;
+          <span
+            style={{
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {cluster.articles.length}
+          </span>
+          &nbsp;source{cluster.articles.length !== 1 ? 's' : ''}
         </div>
       </div>
 
-      {/* Scrollable body */}
+      {/* ── Scroll area ────────────────────────────────────────────── */}
       <div style={scrollBody}>
-        {/* Summary */}
-        {cluster.summary && (
-          <div>
-            <div style={{ ...sourcesHeader, color: '#6b6578', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
-              Summary
-            </div>
-            <div style={summaryText}>{cluster.summary}</div>
-          </div>
-        )}
-
-        {/* Sources */}
+        {/* Source cards section */}
         <div>
-          <div style={{ ...sourcesHeader, marginBottom: 12 }}>
-            <span style={{ color: '#6b6578', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
-              Covered by{' '}
-            </span>
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontSize: 12,
-                fontWeight: 800,
-              }}
-            >
-              {cluster.articles.length} source{cluster.articles.length !== 1 ? 's' : ''}
-            </span>
+          <div style={sectionHeader}>
+            <span style={sectionTitle}>Sources</span>
+            <span style={sectionCount}>{sortedArticles.length}</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {sortedArticles.map((article) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {sortedArticles.map((article, index) => {
               const color = sourceColor(article.source.name);
               return (
                 <a
@@ -318,66 +453,55 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={sourceCard(article.id)}
+                  style={sourceCard(article.id, index)}
                   onMouseEnter={() => setHoveredSource(article.id)}
                   onMouseLeave={() => setHoveredSource(null)}
                 >
-                  <div style={dotStyle(color)} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: '#f5f0eb',
-                        marginBottom: 3,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {article.source.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: '#a8a3b3',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {article.title}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: '#6b6578',
-                        marginTop: 4,
-                      }}
-                    >
-                      {relativeTime(article.publishedAt)}
-                    </div>
+                  {/* Top row: dot + name + time */}
+                  <div style={cardTopRow}>
+                    <div style={dotStyle(color)} />
+                    <span style={sourceNameStyle}>{article.source.name}</span>
+                    <span style={timeStyle}>{relativeTime(article.publishedAt)}</span>
+                    <span style={externalIcon(article.id)}>&#8599;</span>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: '#7c5cfc',
-                      fontWeight: 600,
-                      flexShrink: 0,
-                      marginTop: 2,
-                    }}
-                  >
-                    ↗
-                  </div>
+                  {/* Article title */}
+                  <div style={articleTitleStyle(article.id)}>{article.title}</div>
                 </a>
               );
             })}
           </div>
         </div>
+
+        {/* Summary section (collapsible) */}
+        {cluster.summary && (
+          <div style={{ marginTop: 8 }}>
+            <button
+              style={summaryToggle}
+              onClick={() => setSummaryOpen((prev) => !prev)}
+              onMouseEnter={() => setSummaryHover(true)}
+              onMouseLeave={() => setSummaryHover(false)}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  transition: 'transform 0.2s ease',
+                  transform: summaryOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                  fontSize: 10,
+                }}
+              >
+                &#9654;
+              </span>
+              {summaryOpen ? 'Hide summary' : 'Show summary'}
+            </button>
+            {summaryOpen && (
+              <div style={summaryContent}>{cluster.summary}</div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Footer: Fly to Location */}
-      <div style={footer}>
+      {/* ── Action bar (sticky bottom) ─────────────────────────────── */}
+      <div style={actionBar}>
         <button
           style={flyBtn}
           onClick={() => onFlyTo(cluster.location.lat, cluster.location.lng)}

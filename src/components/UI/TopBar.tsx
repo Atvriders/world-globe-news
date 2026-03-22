@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NewsCategory } from '../../types';
-import { CATEGORY_COLORS, CATEGORY_LABELS, UI } from '../../data/theme';
+import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_ICONS, UI } from '../../data/theme';
 
 interface TopBarProps {
   selectedCategory: NewsCategory | 'all';
@@ -19,7 +19,7 @@ const CATEGORIES: (NewsCategory | 'all')[] = [
   'entertainment',
 ];
 
-/** Gradient pairs per category for active pill backgrounds */
+/** Gradient pairs per category for active/hover highlights */
 const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   all:           ['#7c5cfc', '#00c6ff'],
   world:         ['#3b82f6', '#60a5fa'],
@@ -32,33 +32,75 @@ const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
   entertainment: ['#f97316', '#fb923c'],
 };
 
+/** Simulated story counts per category */
+const STORY_COUNTS: Record<string, number> = {
+  all: 142,
+  world: 34,
+  politics: 22,
+  business: 18,
+  technology: 16,
+  sports: 19,
+  health: 11,
+  science: 9,
+  entertainment: 13,
+};
+
 function formatUTCTime(): string {
   const now = new Date();
   const h = String(now.getUTCHours()).padStart(2, '0');
   const m = String(now.getUTCMinutes()).padStart(2, '0');
-  const s = String(now.getUTCSeconds()).padStart(2, '0');
-  return `${h}:${m}:${s} UTC`;
+  return `${h}:${m} UTC`;
+}
+
+function getCategoryIcon(cat: NewsCategory | 'all'): string {
+  if (cat === 'all') return '🌐';
+  return CATEGORY_ICONS[cat] || '📰';
+}
+
+function getCategoryLabel(cat: NewsCategory | 'all'): string {
+  if (cat === 'all') return 'All Categories';
+  return CATEGORY_LABELS[cat];
 }
 
 const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) => {
   const [clock, setClock] = useState(formatUTCTime);
-  const [hoveredPill, setHoveredPill] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Clock tick
   useEffect(() => {
     const id = setInterval(() => setClock(formatUTCTime()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const pillLabel = (cat: NewsCategory | 'all'): string =>
-    cat === 'all' ? 'All' : CATEGORY_LABELS[cat];
+  // Click outside to close
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(e.target as Node) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(e.target as Node)
+    ) {
+      setMenuOpen(false);
+    }
+  }, []);
 
-  const pillColor = (cat: NewsCategory | 'all'): string =>
-    cat === 'all' ? UI.accent : CATEGORY_COLORS[cat];
+  useEffect(() => {
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen, handleClickOutside]);
 
-  const pillGradient = (cat: NewsCategory | 'all'): string => {
-    const [a, b] = CATEGORY_GRADIENTS[cat] || ['#7c5cfc', '#00c6ff'];
-    return `linear-gradient(135deg, ${a}, ${b})`;
+  const handleSelect = (cat: NewsCategory | 'all') => {
+    onCategoryChange(cat);
+    setMenuOpen(false);
   };
+
+  const totalStories = STORY_COUNTS.all;
+  const totalSources = 17;
 
   return (
     <div
@@ -67,13 +109,13 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
         top: 0,
         left: 0,
         width: '100%',
-        height: 56,
+        height: 52,
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
-        background: 'rgba(18, 18, 24, 0.8)',
+        padding: '0 20px',
+        background: 'rgba(18, 18, 24, 0.82)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -81,12 +123,12 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
       }}
     >
       {/* ── Left: Brand ──────────────────────────────────── */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* Animated gradient dot — "live" indicator */}
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Animated live dot */}
         <span
           style={{
-            width: 8,
-            height: 8,
+            width: 7,
+            height: 7,
             borderRadius: '50%',
             display: 'inline-block',
             animation: 'topbar-dot-cycle 3s ease-in-out infinite',
@@ -95,10 +137,10 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
         />
         <span
           style={{
-            fontSize: 15,
-            fontWeight: 800,
+            fontSize: 13,
+            fontWeight: 700,
             fontFamily: "'Inter', sans-serif",
-            letterSpacing: 2,
+            letterSpacing: 1.8,
             whiteSpace: 'nowrap',
             background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
             WebkitBackgroundClip: 'text',
@@ -110,69 +152,161 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
         </span>
       </div>
 
-      {/* ── Center: Category Pills ────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          alignItems: 'center',
-          flexWrap: 'nowrap',
-          overflow: 'hidden',
-        }}
-      >
-        {CATEGORIES.map((cat) => {
-          const active = selectedCategory === cat;
-          const hovered = hoveredPill === cat;
-          const color = pillColor(cat);
-
-          const pillStyle: React.CSSProperties = {
-            fontSize: 11,
+      {/* ── Center: Category Dropdown ────────────────────── */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <button
+          ref={buttonRef}
+          onClick={() => setMenuOpen((prev) => !prev)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 14px',
+            borderRadius: 10,
+            border: `1px solid ${menuOpen ? 'rgba(124, 92, 252, 0.4)' : 'rgba(255,255,255,0.1)'}`,
+            background: menuOpen ? 'rgba(124, 92, 252, 0.12)' : 'rgba(255,255,255,0.05)',
+            color: '#f5f0eb',
+            fontSize: 12,
             fontWeight: 600,
             fontFamily: "'Inter', sans-serif",
-            padding: '6px 16px',
-            borderRadius: 20,
             cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            transition: 'all 0.2s ease',
             outline: 'none',
-            lineHeight: '16px',
-            border: active
-              ? '1px solid transparent'
-              : `1px solid ${hovered ? `${color}55` : 'rgba(255,255,255,0.08)'}`,
-            background: active ? pillGradient(cat) : 'transparent',
-            color: active ? '#fff' : hovered ? color : 'rgba(255,255,255,0.55)',
-            transform: hovered && !active ? 'scale(1.02)' : 'scale(1)',
-            boxShadow: hovered && !active ? `0 0 12px ${color}30` : 'none',
-          };
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span style={{ fontSize: 14 }}>{getCategoryIcon(selectedCategory)}</span>
+          <span>{getCategoryLabel(selectedCategory)}</span>
+          <span
+            style={{
+              fontSize: 10,
+              opacity: 0.5,
+              marginLeft: 2,
+              transition: 'transform 0.2s ease',
+              transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              display: 'inline-block',
+            }}
+          >
+            ▾
+          </span>
+        </button>
 
-          return (
-            <button
-              key={cat}
-              style={pillStyle}
-              onClick={() => onCategoryChange(cat)}
-              onMouseEnter={() => setHoveredPill(cat)}
-              onMouseLeave={() => setHoveredPill(null)}
-            >
-              {pillLabel(cat)}
-            </button>
-          );
-        })}
+        {/* Dropdown Menu */}
+        {menuOpen && (
+          <div
+            ref={dropdownRef}
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              minWidth: 220,
+              background: 'rgba(22, 22, 30, 0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12,
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+              padding: '6px 0',
+              animation: 'topbar-dropdown-in 0.18s ease-out forwards',
+              zIndex: 1001,
+            }}
+          >
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat;
+              const hovered = hoveredItem === cat;
+              const color = cat === 'all' ? UI.accent : CATEGORY_COLORS[cat];
+              const [g1, g2] = CATEGORY_GRADIENTS[cat] || ['#7c5cfc', '#00c6ff'];
+              const count = STORY_COUNTS[cat] || 0;
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleSelect(cat)}
+                  onMouseEnter={() => setHoveredItem(cat)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    width: '100%',
+                    padding: '8px 14px',
+                    border: 'none',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 12,
+                    fontWeight: active ? 600 : 500,
+                    color: active ? '#fff' : hovered ? '#f5f0eb' : 'rgba(255,255,255,0.65)',
+                    background: active
+                      ? `linear-gradient(135deg, ${g1}30, ${g2}20)`
+                      : hovered
+                        ? 'rgba(255,255,255,0.06)'
+                        : 'transparent',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'left',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  {/* Icon */}
+                  <span style={{ fontSize: 15, width: 22, textAlign: 'center', flexShrink: 0 }}>
+                    {getCategoryIcon(cat)}
+                  </span>
+
+                  {/* Label */}
+                  <span style={{ flex: 1 }}>{getCategoryLabel(cat)}</span>
+
+                  {/* Story count badge */}
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      padding: '2px 7px',
+                      borderRadius: 8,
+                      background: active ? 'rgba(255,255,255,0.18)' : `${color}18`,
+                      color: active ? '#fff' : `${color}cc`,
+                      lineHeight: '14px',
+                    }}
+                  >
+                    {count}
+                  </span>
+
+                  {/* Active indicator bar */}
+                  {active && (
+                    <span
+                      style={{
+                        position: 'absolute' as const,
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 3,
+                        height: 18,
+                        borderRadius: '0 3px 3px 0',
+                        background: `linear-gradient(180deg, ${g1}, ${g2})`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ── Right: Clock + LIVE FEED ──────────────────────── */}
+      {/* ── Right: Clock + LIVE + Stats ──────────────────── */}
       <div
         style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
+          alignItems: 'center',
+          gap: 14,
           flexShrink: 0,
-          gap: 2,
         }}
       >
+        {/* Clock */}
         <span
           style={{
             color: '#f5f0e8',
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 500,
             fontFamily: "'Inter', monospace",
             fontVariantNumeric: 'tabular-nums',
@@ -182,18 +316,72 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
         >
           {clock}
         </span>
+
+        {/* Divider */}
         <span
           style={{
-            fontSize: 9,
-            fontWeight: 700,
-            fontFamily: "'Inter', sans-serif",
-            letterSpacing: 3,
+            width: 1,
+            height: 16,
+            background: 'rgba(255,255,255,0.1)',
+            flexShrink: 0,
+          }}
+        />
+
+        {/* LIVE badge */}
+        <span
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
             whiteSpace: 'nowrap',
-            color: 'rgba(255,255,255,0.45)',
-            animation: 'topbar-live-breathe 2.5s ease-in-out infinite',
           }}
         >
-          LIVE FEED
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: '#00e676',
+              boxShadow: '0 0 6px rgba(0, 230, 118, 0.5)',
+              animation: 'topbar-live-pulse 2s ease-in-out infinite',
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: 1.5,
+              color: '#00e676',
+              opacity: 0.85,
+            }}
+          >
+            LIVE
+          </span>
+        </span>
+
+        {/* Divider */}
+        <span
+          style={{
+            width: 1,
+            height: 16,
+            background: 'rgba(255,255,255,0.1)',
+            flexShrink: 0,
+          }}
+        />
+
+        {/* Stats */}
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 400,
+            fontFamily: "'Inter', sans-serif",
+            color: UI.textMuted,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {totalStories} stories · {totalSources} sources
         </span>
       </div>
 
@@ -205,9 +393,13 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange }) =
           66%  { background: #ec4899; box-shadow: 0 0 6px #ec489988; }
           100% { background: #7c5cfc; box-shadow: 0 0 6px #7c5cfc88; }
         }
-        @keyframes topbar-live-breathe {
-          0%, 100% { opacity: 0.45; text-shadow: 0 0 4px transparent; }
-          50%      { opacity: 1; text-shadow: 0 0 8px rgba(0,198,255,0.4); }
+        @keyframes topbar-live-pulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 230, 118, 0.5); }
+          50%      { opacity: 0.5; box-shadow: 0 0 12px rgba(0, 230, 118, 0.8); }
+        }
+        @keyframes topbar-dropdown-in {
+          from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
     </div>

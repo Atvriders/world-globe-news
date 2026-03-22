@@ -22,13 +22,19 @@ const regions: Region[] = [
 
 const fadeInKeyframes = `
 @keyframes regionTooltipFadeIn {
-  from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
-  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 `;
 
 const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const handleClick = (region: Region, index: number) => {
+    setActiveIndex(index);
+    onFlyTo(region.lat, region.lng);
+  };
 
   return (
     <>
@@ -36,16 +42,23 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
       <div
         style={{
           position: 'fixed',
-          bottom: 52,
-          left: 20,
+          bottom: 48,
+          left: 16,
           zIndex: 1100,
+          background: 'rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 20,
+          padding: '4px 6px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
+          flexDirection: 'row',
+          gap: 4,
         }}
       >
         {regions.map((region, index) => {
           const isHovered = hoveredIndex === index;
+          const isActive = activeIndex === index;
           return (
             <div
               key={region.name}
@@ -54,31 +67,31 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
               onMouseLeave={() => setHoveredIndex(null)}
             >
               <button
-                onClick={() => onFlyTo(region.lat, region.lng)}
+                onClick={() => handleClick(region, index)}
                 aria-label={region.name}
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   borderRadius: '50%',
                   background: isHovered
                     ? 'rgba(255,255,255,0.12)'
                     : 'rgba(255,255,255,0.06)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: isHovered
-                    ? '1px solid rgba(124, 92, 252, 0.4)'
-                    : '1px solid rgba(255,255,255,0.08)',
+                  border: isActive
+                    ? '1.5px solid rgba(124, 92, 252, 0.6)'
+                    : isHovered
+                      ? '1px solid rgba(124, 92, 252, 0.4)'
+                      : '1px solid rgba(255,255,255,0.06)',
                   boxShadow: isHovered
-                    ? '0 4px 16px rgba(0,0,0,0.3), 0 0 12px rgba(124, 92, 252, 0.2)'
-                    : '0 4px 16px rgba(0,0,0,0.3)',
+                    ? '0 0 10px rgba(124, 92, 252, 0.3), 0 0 4px rgba(124, 92, 252, 0.15)'
+                    : 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 16,
+                  fontSize: 14,
                   padding: 0,
                   lineHeight: 1,
-                  transform: isHovered ? 'scale(1.08)' : 'scale(1)',
+                  transform: isHovered ? 'scale(1.05)' : 'scale(1)',
                   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   outline: 'none',
                 }}
@@ -90,21 +103,21 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
                 <div
                   style={{
                     position: 'absolute',
-                    left: 44,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'rgba(255,255,255,0.06)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 8,
-                    padding: '4px 12px',
+                    bottom: 38,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(20, 16, 28, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 6,
+                    padding: '3px 8px',
                     color: 'rgba(255, 247, 237, 0.92)',
-                    fontSize: 11,
+                    fontSize: 10,
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                    animation: 'regionTooltipFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                    animation: 'regionTooltipFadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards',
                   }}
                 >
                   {region.name}

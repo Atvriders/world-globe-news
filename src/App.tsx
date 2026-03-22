@@ -7,6 +7,7 @@ import NewsDetail from './components/UI/NewsDetail';
 import SearchBar from './components/UI/SearchBar';
 import LoadingScreen from './components/UI/LoadingScreen';
 import RegionSelector from './components/UI/RegionSelector';
+import StatsOverlay from './components/UI/StatsOverlay';
 import { useStore } from './hooks/useStore';
 import { useNewsFetch } from './hooks/useNewsFetch';
 import { GLOBAL_CSS } from './data/theme';
@@ -101,6 +102,8 @@ const App: React.FC = () => {
         onChange={setSearchQuery}
         onSearch={handleSearch}
       />
+
+      <StatsOverlay clusters={filteredClusters} />
 
       <RegionSelector onFlyTo={handleRegionFlyTo} />
 
