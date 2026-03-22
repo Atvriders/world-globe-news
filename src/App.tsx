@@ -110,10 +110,11 @@ const App: React.FC = () => {
       const title = data.query?.title || url;
 
       if (similarClusters.length > 0) {
-        // Sort by similarity score descending (server already sorts, but ensure it)
         similarClusters.sort((a: any, b: any) => (b.similarity || 0) - (a.similarity || 0));
         setClusters(similarClusters);
         setUrlSearchTitle(title);
+        setSelectedCategory('all'); // Show all categories for URL results
+        setSelectedCluster(null); // Close any open detail
         setSidebarOpen(true);
       } else {
         // No similar stories found — show warning banner, auto-dismiss after 5s
@@ -142,7 +143,8 @@ const App: React.FC = () => {
   // Filter clusters for sidebar display
   const filteredClusters = useMemo(() => {
     let result = clusters;
-    if (selectedCategory !== 'all') {
+    // Skip category filter when showing URL search results
+    if (selectedCategory !== 'all' && !urlSearchTitle) {
       result = result.filter(c => c.category === selectedCategory);
     }
     if (searchQuery && !urlSearchTitle) {
