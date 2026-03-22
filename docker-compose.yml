@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/atvriders/world-globe-news-frontend:latest
+    container_name: world-globe-news-frontend
+    ports:
+      - "3008:3008"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - globe-network
+
+  backend:
+    image: ghcr.io/atvriders/world-globe-news-backend:latest
+    container_name: world-globe-news-backend
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=production
+      - PORT=3009
+    restart: unless-stopped
+    networks:
+      - globe-network
+
+networks:
+  globe-network:
+    driver: bridge

@@ -1,0 +1,37 @@
+{
+  "name": "world-globe-news",
+  "version": "0.1.0",
+  "description": "Interactive 3D globe news viewer — browse breaking news from around the world pinned to real locations with multi-source aggregation",
+  "author": "Atvriders",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Atvriders/world-globe-news.git"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "server": "cd server && node src/server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run server\""
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "concurrently": "^8.2.2",
+    "date-fns": "^3.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-globe.gl": "^2.27.1",
+    "three": "^0.183.2",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.165.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.1"
+  }
+}
