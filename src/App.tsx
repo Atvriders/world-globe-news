@@ -128,7 +128,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error('URL search failed:', err);
     }
-  }, [clusters, savedClusters, setClusters, setSidebarOpen, setSearchQuery]);
+  }, [clusters, savedClusters, setClusters, setSidebarOpen, setSearchQuery, setSelectedCategory, setSelectedCluster]);
 
   // Dismiss URL search banner and restore original clusters
   const handleDismissUrlSearch = useCallback(() => {
