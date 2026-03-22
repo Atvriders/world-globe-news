@@ -186,12 +186,11 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
 
         domElement.addEventListener('mousedown', onInteractStart);
         domElement.addEventListener('touchstart', onInteractStart, { passive: true });
-        domElement.addEventListener('wheel', onInteractStart, { passive: true });
         domElement.addEventListener('mouseup', onInteractEnd);
         domElement.addEventListener('touchend', onInteractEnd);
 
-        // Resume rotation after brief pause on wheel
-        let wheelTimer: ReturnType<typeof setTimeout>;
+        // Wheel: pause rotation, resume after 1.5s idle
+        let wheelTimer: ReturnType<typeof setTimeout> | undefined;
         const onWheel = () => {
           setUserInteracting(true);
           clearTimeout(wheelTimer);
@@ -202,7 +201,6 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
         return () => {
           domElement.removeEventListener('mousedown', onInteractStart);
           domElement.removeEventListener('touchstart', onInteractStart);
-          domElement.removeEventListener('wheel', onInteractStart);
           domElement.removeEventListener('mouseup', onInteractEnd);
           domElement.removeEventListener('touchend', onInteractEnd);
           domElement.removeEventListener('wheel', onWheel);
