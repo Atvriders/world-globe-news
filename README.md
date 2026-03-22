@@ -5,12 +5,13 @@ Interactive 3D globe news viewer — browse breaking news from around the world 
 ## Features
 
 - **3D Interactive Globe** — Soft, animated globe with purple atmosphere glow, auto-rotation (stops when zoomed in), cinematic fly-to animations, responsive to window resize
-- **250+ RSS Feed Sources** — Aggregates real-time news from 250+ feeds worldwide including Reuters, AP, BBC, CNN, NYT, Al Jazeera, NHK, SCMP, and more
+- **250 RSS Feed Sources** — Aggregates real-time news from exactly 250 RSS feeds worldwide including Reuters, AP, BBC, CNN, NYT, Al Jazeera, NHK, SCMP, and more
 - **Political Bias Indicators** — Each source labeled with bias rating (Left, Center-Left, Center, Center-Right, Right, Independent) based on AllSides/MBFC data
 - **Auto-Geocoding** — Extracts locations from headlines using 70+ country codes, 65+ major cities, and 50+ keyword mappings
 - **News Clustering** — Jaccard similarity groups articles about the same story from different sources into a single pin (no article cap)
 - **Breaking News Detection** — 3+ sources covering the same story triggers breaking status with pulsing ring animations
 - **Expandable Source Cards** — Click any source to see article summary + political bias badge, then "Open Source" button to read the original
+- **URL Search** — Paste any article URL to find similar stories being covered on the globe
 - **Search by Source** — Type a source name (BBC, Reuters, CNN) in the search bar to filter by outlet
 - **8 Category Filters** — World, Politics, Business, Technology, Sports, Health, Science, Entertainment (dropdown menu)
 - **4 Sort Modes** — Breaking First, Newest, Most Sources, Category grouping
