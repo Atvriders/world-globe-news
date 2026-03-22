@@ -252,6 +252,143 @@ export const GLOBAL_CSS = `
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
   }
+
+  /* ── News-style animations ──────────────────────────────────────────────── */
+
+  /* Breaking news banner flash — bold red flash across element */
+  @keyframes news-flash {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .news-flash {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,65,108,0.15) 45%, rgba(255,75,43,0.25) 50%, rgba(255,65,108,0.15) 55%, transparent 100%);
+    background-size: 200% 100%;
+    animation: news-flash 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* Urgent badge pulse — attention-grabbing for BREAKING labels */
+  @keyframes news-urgent {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.5); }
+    50%      { box-shadow: 0 0 0 6px rgba(255, 65, 108, 0); }
+  }
+  .news-urgent {
+    animation: news-urgent 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* Live dot heartbeat — steady pulse for live indicators */
+  @keyframes news-heartbeat {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    25%      { transform: scale(1.3); opacity: 0.8; }
+    50%      { transform: scale(1); opacity: 1; }
+    75%      { transform: scale(1.15); opacity: 0.9; }
+  }
+  .news-heartbeat {
+    animation: news-heartbeat 2s ease-in-out infinite;
+  }
+
+  /* Card entrance — staggered slide-in for news cards */
+  @keyframes news-card-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .news-card-in {
+    animation: news-card-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  /* Headline typewriter shimmer — subtle scan effect on headlines */
+  @keyframes news-shimmer {
+    0%   { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .news-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    background-size: 50% 100%;
+    animation: news-shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* Source count pop — bounce effect when source count updates */
+  @keyframes news-count-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+  .news-count-pop {
+    animation: news-count-pop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  }
+
+  /* Category ribbon slide — gradient sweep on category indicators */
+  @keyframes news-ribbon {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .news-ribbon {
+    background-size: 200% 200%;
+    animation: news-ribbon 4s ease infinite;
+  }
+
+  /* Notification bell ring — for new story alerts */
+  @keyframes news-ring {
+    0%   { transform: rotate(0deg); }
+    10%  { transform: rotate(14deg); }
+    20%  { transform: rotate(-14deg); }
+    30%  { transform: rotate(10deg); }
+    40%  { transform: rotate(-10deg); }
+    50%  { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+  }
+  .news-ring {
+    animation: news-ring 2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top center;
+  }
+
+  /* Ambient breathe — gentle scale for background elements */
+  @keyframes news-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50%      { transform: scale(1.02); opacity: 1; }
+  }
+  .news-breathe {
+    animation: news-breathe 4s ease-in-out infinite;
+  }
+
+  /* Wire flash — simulates a news wire transmission burst */
+  @keyframes news-wire {
+    0%   { opacity: 0; transform: scaleX(0); transform-origin: left; }
+    30%  { opacity: 1; transform: scaleX(1); }
+    70%  { opacity: 1; transform: scaleX(1); }
+    100% { opacity: 0; transform: scaleX(0); transform-origin: right; }
+  }
+  .news-wire {
+    animation: news-wire 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Spotlight — draws attention to important elements */
+  @keyframes news-spotlight {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(124, 92, 252, 0), 0 0 0 0 rgba(0, 198, 255, 0); }
+    50%      { box-shadow: 0 0 16px 4px rgba(124, 92, 252, 0.15), 0 0 30px 8px rgba(0, 198, 255, 0.08); }
+  }
+  .news-spotlight {
+    animation: news-spotlight 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* Slide-in from right — for panel transitions */
+  @keyframes news-slide-right {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .news-slide-right {
+    animation: news-slide-right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  /* Ticker highlight — brief glow when a new story enters the ticker */
+  @keyframes news-ticker-highlight {
+    0%   { color: #ff416c; text-shadow: 0 0 8px rgba(255, 65, 108, 0.5); }
+    100% { color: #f5f0eb; text-shadow: none; }
+  }
+  .news-ticker-highlight {
+    animation: news-ticker-highlight 2s ease-out;
+  }
 `;
 
 // ── Reliability tier badges ─────────────────────────────────────────────────
