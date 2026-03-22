@@ -622,7 +622,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
       <div style={actionBar}>
         <button
           style={flyBtn}
-          onClick={() => cluster.location && onFlyTo(cluster.location.lat, cluster.location.lng)}
+          onClick={() => cluster.location?.lat != null && cluster.location?.lng != null && onFlyTo(cluster.location.lat, cluster.location.lng)}
           onMouseEnter={() => setFlyHover(true)}
           onMouseLeave={() => setFlyHover(false)}
         >
