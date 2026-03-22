@@ -88,7 +88,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   const catLabel = CATEGORY_LABELS[cluster.category];
   const catIcon = CATEGORY_ICONS[cluster.category];
-  const gradient = CATEGORY_GRADIENTS[cluster.category];
+  const gradient = CATEGORY_GRADIENTS[cluster.category] || ['#7c5cfc', '#00c6ff'];
   const locationText = [cluster.location?.city, cluster.location?.country]
     .filter(Boolean)
     .join(', ') || cluster.location?.countryCode || 'Unknown';
@@ -568,7 +568,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
       <div style={actionBar}>
         <button
           style={flyBtn}
-          onClick={() => onFlyTo(cluster.location.lat, cluster.location.lng)}
+          onClick={() => cluster.location && onFlyTo(cluster.location.lat, cluster.location.lng)}
           onMouseEnter={() => setFlyHover(true)}
           onMouseLeave={() => setFlyHover(false)}
         >
