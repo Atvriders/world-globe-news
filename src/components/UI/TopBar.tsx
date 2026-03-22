@@ -23,7 +23,7 @@ const CATEGORIES: (NewsCategory | 'all')[] = [
 
 /** Gradient pairs per category for active/hover highlights */
 const CATEGORY_GRADIENTS: Record<string, [string, string]> = {
-  all:           ['#7c5cfc', '#00c6ff'],
+  all:           ['#6366f1', '#a78bfa'],
   world:         ['#3b82f6', '#60a5fa'],
   politics:      ['#ef4444', '#f87171'],
   business:      ['#f59e0b', '#fbbf24'],
@@ -119,10 +119,10 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 20px',
-        background: 'rgba(18, 18, 24, 0.82)',
+        background: 'rgba(15, 15, 25, 0.6)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
         boxSizing: 'border-box',
       }}
     >
@@ -146,7 +146,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
             fontFamily: "'Inter', sans-serif",
             letterSpacing: 1.8,
             whiteSpace: 'nowrap',
-            background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+            background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -221,7 +221,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
               const active = selectedCategory === cat;
               const hovered = hoveredItem === cat;
               const color = cat === 'all' ? UI.accent : CATEGORY_COLORS[cat];
-              const [g1, g2] = CATEGORY_GRADIENTS[cat] || ['#7c5cfc', '#00c6ff'];
+              const [g1, g2] = CATEGORY_GRADIENTS[cat] || ['#6366f1', '#a78bfa'];
               const count = STORY_COUNTS[cat] || 0;
 
               return (
@@ -410,7 +410,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
                 background: refreshing ? 'rgba(124, 92, 252, 0.15)' : 'rgba(255,255,255,0.06)',
                 border: `1px solid ${refreshing ? 'rgba(124, 92, 252, 0.4)' : 'rgba(255,255,255,0.08)'}`,
                 borderRadius: 8,
-                color: refreshing ? '#7c5cfc' : '#a8a3b3',
+                color: refreshing ? '#6366f1' : '#a8a3b3',
                 fontSize: 10,
                 fontWeight: 600,
                 fontFamily: "'Inter', sans-serif",
@@ -437,10 +437,10 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
       {/* ── Keyframes ─────────────────────────────────────── */}
       <style>{`
         @keyframes topbar-dot-cycle {
-          0%   { background: #7c5cfc; box-shadow: 0 0 6px #7c5cfc88; }
-          33%  { background: #00c6ff; box-shadow: 0 0 6px #00c6ff88; }
+          0%   { background: #6366f1; box-shadow: 0 0 6px #6366f188; }
+          33%  { background: #a78bfa; box-shadow: 0 0 6px #a78bfa88; }
           66%  { background: #ec4899; box-shadow: 0 0 6px #ec489988; }
-          100% { background: #7c5cfc; box-shadow: 0 0 6px #7c5cfc88; }
+          100% { background: #6366f1; box-shadow: 0 0 6px #6366f188; }
         }
         @keyframes topbar-live-pulse {
           0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(0, 230, 118, 0.5); }

@@ -142,7 +142,7 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 999,
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(18, 18, 24, 0.7)',
+    background: 'rgba(12, 12, 20, 0.5)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -173,7 +173,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 8,
     height: 8,
     borderRadius: '50%',
-    background: '#7c5cfc',
+    background: '#6366f1',
     flexShrink: 0,
   },
   badgeTextRed: {
@@ -183,7 +183,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.08em',
   },
   badgeTextBlue: {
-    color: '#7c5cfc',
+    color: '#6366f1',
     fontWeight: 700,
     fontSize: 11,
     letterSpacing: '0.08em',
@@ -243,7 +243,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   /* ── New-news badge ────────── */
   newBadge: {
-    background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+    background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
     color: '#fff',
     fontSize: 9,
     fontWeight: 700,

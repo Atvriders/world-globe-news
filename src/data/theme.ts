@@ -72,11 +72,11 @@ export const UI = {
   textSecondary:  '#a8a3b3',
   textMuted:      '#6b6578',
 
-  // Accent — soft purple-blue
-  accent:         '#7c5cfc',
-  accentEnd:      '#00c6ff',
-  accentGlow:     'rgba(124, 92, 252, 0.3)',
-  accentGradient: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+  // Accent — warm indigo-violet
+  accent:         '#6366f1',
+  accentEnd:      '#a78bfa',
+  accentGlow:     'rgba(99, 102, 241, 0.3)',
+  accentGradient: 'linear-gradient(135deg, #6366f1, #a78bfa)',
 
   // Breaking — animated warm red gradient
   breaking:       '#ff416c',
@@ -107,7 +107,7 @@ export const UI = {
   shadowSm:       '0 2px 8px rgba(0, 0, 0, 0.3)',
   shadowMd:       '0 4px 16px rgba(0, 0, 0, 0.4)',
   shadowLg:       '0 8px 32px rgba(0, 0, 0, 0.5)',
-  glowAccent:     '0 0 20px rgba(124, 92, 252, 0.25)',
+  glowAccent:     '0 0 20px rgba(99, 102, 241, 0.25)',
   glowBreaking:   '0 0 20px rgba(255, 65, 108, 0.35)',
 
   // Transitions — smooth cubic-bezier
@@ -119,14 +119,14 @@ export const UI = {
 // ── Globe Settings ──────────────────────────────────────────────────────────
 
 export const GLOBE = {
-  atmosphereColor:    '#7c5cfc',
-  atmosphereAltitude: 0.3,
-  globeImageUrl:      '/img/earth-day.jpg',
+  atmosphereColor:    '#6366f1',  // warm indigo/purple glow
+  atmosphereAltitude: 0.35,       // bigger, softer glow envelope
+  globeImageUrl:      '/img/earth-blue-marble.jpg',
   bumpImageUrl:       '/img/earth-topology.png',
   backgroundImageUrl: '/img/night-sky.png',
   pinBaseSize:        0.35,
-  pinBreakingSize:    0.6,
-  arcStroke:          0.3,
+  pinBreakingSize:    0.7,
+  arcStroke:          0.2,        // thinner, more delicate arcs
 };
 
 // ── Time filter labels ──────────────────────────────────────────────────────
@@ -388,6 +388,50 @@ export const GLOBAL_CSS = `
   }
   .news-ticker-highlight {
     animation: news-ticker-highlight 2s ease-out;
+  }
+
+  /* ── Holographic / Comfy Futuristic Animations ───────────────────────────── */
+
+  /* Holographic glow — soft pulsing aura for the comfy future feel */
+  @keyframes holo-glow {
+    0%, 100% {
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.2), 0 0 30px rgba(124, 92, 252, 0.1), 0 0 60px rgba(99, 102, 241, 0.05);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(124, 92, 252, 0.15), 0 0 80px rgba(99, 102, 241, 0.08);
+    }
+  }
+  .holo-glow {
+    animation: holo-glow 4s ease-in-out infinite;
+  }
+
+  /* Soft particle float — for micro-particle ambient effects */
+  @keyframes particle-float {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+    50% { transform: translateY(-8px) scale(1.1); opacity: 1; }
+  }
+  .particle-float {
+    animation: particle-float 5s ease-in-out infinite;
+  }
+
+  /* Warm pulse — gentle warm color breathing */
+  @keyframes warm-pulse {
+    0%, 100% { opacity: 0.7; filter: hue-rotate(0deg); }
+    50% { opacity: 1; filter: hue-rotate(10deg); }
+  }
+  .warm-pulse {
+    animation: warm-pulse 6s ease-in-out infinite;
+  }
+
+  /* Glass shimmer — subtle light sweep across glass elements */
+  @keyframes glass-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .glass-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 55%, transparent 100%);
+    background-size: 200% 100%;
+    animation: glass-shimmer 8s ease-in-out infinite;
   }
 `;
 

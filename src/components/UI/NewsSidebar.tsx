@@ -193,7 +193,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 8,
-    background: hoveredTab ? 'rgba(18, 18, 24, 0.95)' : 'rgba(18, 18, 24, 0.85)',
+    background: hoveredTab ? 'rgba(12, 12, 20, 0.85)' : 'rgba(12, 12, 20, 0.75)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     border: '1px solid rgba(255,255,255,0.06)',
@@ -215,11 +215,11 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     right: 0,
     width: isMobile ? '100vw' : 380,
     height: '100%',
-    background: 'rgba(18, 18, 24, 0.85)',
+    background: 'rgba(12, 12, 20, 0.75)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     borderLeft: '1px solid rgba(255,255,255,0.06)',
-    boxShadow: '-8px 0 40px rgba(0,0,0,0.4)',
+    boxShadow: '-8px 0 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(99, 102, 241, 0.03)',
     display: 'flex',
     flexDirection: 'column',
     transition:
@@ -482,7 +482,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
                 fontSize: 17,
                 fontWeight: 700,
                 margin: 0,
-                background: 'linear-gradient(135deg, #9b59b6, #00c6ff)',
+                background: 'linear-gradient(135deg, #9b59b6, #a78bfa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -623,7 +623,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
                   borderRadius: 12,
                   border: isActive ? 'none' : '1px solid rgba(255,255,255,0.08)',
                   background: isActive
-                    ? 'linear-gradient(135deg, #7c5cfc, #00c6ff)'
+                    ? 'linear-gradient(135deg, #6366f1, #a78bfa)'
                     : isHover
                       ? 'rgba(255,255,255,0.08)'
                       : 'rgba(255,255,255,0.04)',

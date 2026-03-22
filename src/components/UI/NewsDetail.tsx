@@ -99,7 +99,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   const catLabel = CATEGORY_LABELS[cluster.category];
   const catIcon = CATEGORY_ICONS[cluster.category];
-  const gradient = CATEGORY_GRADIENTS[cluster.category] || ['#7c5cfc', '#00c6ff'];
+  const gradient = CATEGORY_GRADIENTS[cluster.category] || ['#6366f1', '#a78bfa'];
   const locationText = [cluster.location?.city, cluster.location?.country]
     .filter(Boolean)
     .join(', ') || cluster.location?.countryCode || 'Unknown';
@@ -118,11 +118,11 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     width: isMobile ? 'min(320px, 85vw)' : 380,
     height: isMobile ? '100vh' : 'calc(100vh - 56px)',
     zIndex: 1200,
-    background: 'rgba(14, 14, 20, 0.95)',
+    background: 'rgba(12, 12, 20, 0.85)',
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     borderLeft: '1px solid rgba(255,255,255,0.06)',
-    boxShadow: '-8px 0 40px rgba(0,0,0,0.55)',
+    boxShadow: '-8px 0 40px rgba(0,0,0,0.55), inset 0 0 30px rgba(99, 102, 241, 0.03)',
     transform: visible ? 'translateX(0)' : 'translateX(100%)',
     willChange: 'transform',
     transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
@@ -321,7 +321,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   const externalIcon = (id: string): React.CSSProperties => ({
     fontSize: 11,
-    color: '#7c5cfc',
+    color: '#6366f1',
     opacity: hoveredSource === id ? 1 : 0,
     transition: 'opacity 0.2s ease',
     flexShrink: 0,
@@ -375,7 +375,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     fontSize: 14,
     fontWeight: 700,
     cursor: 'pointer',
-    background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+    background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -457,7 +457,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -469,7 +469,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -485,7 +485,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
             <span
               style={{
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -569,7 +569,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
                           alignItems: 'center',
                           gap: 6,
                           padding: '6px 14px',
-                          background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+                          background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
                           color: '#fff',
                           fontSize: 11,
                           fontWeight: 700,

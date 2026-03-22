@@ -33,7 +33,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
         width: '100vw',
         height: '100vh',
         zIndex: 9999,
-        background: '#121218',
+        background: '#0c0c14',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -76,7 +76,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            background: 'conic-gradient(from 0deg, #7c5cfc, #00c6ff, #7c5cfc)',
+            background: 'conic-gradient(from 0deg, #6366f1, #a78bfa, #6366f1)',
             animation: 'ls-border-spin 3s linear infinite',
             willChange: 'transform',
           }}
@@ -90,7 +90,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
             width: '58px',
             height: '58px',
             borderRadius: '50%',
-            background: '#121218',
+            background: '#0c0c14',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -106,7 +106,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
           fontSize: '18px',
           fontWeight: 800,
           letterSpacing: '3px',
-          background: 'linear-gradient(90deg, #7c5cfc, #00c6ff)',
+          background: 'linear-gradient(90deg, #6366f1, #a78bfa)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -141,7 +141,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
           style={{
             height: '100%',
             borderRadius: '3px',
-            background: 'linear-gradient(90deg, #7c5cfc, #00c6ff)',
+            background: 'linear-gradient(90deg, #6366f1, #a78bfa)',
             animation: 'ls-bar-fill 2s ease forwards, ls-bar-pulse 1.5s ease-in-out 2s infinite',
           }}
         />

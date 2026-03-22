@@ -33,11 +33,11 @@ function buildPins(clusters: NewsCluster[]): GlobeNewsPin[] {
   return clusters
     .filter(c => c.location && typeof c.location.lat === 'number' && typeof c.location.lng === 'number')
     .map(c => {
-      // Size based on source count: more sources = bigger pin (range 0.3–0.8)
+      // Size based on source count: more sources = bigger pin (range 0.35–0.85)
       const sourceCount = c.articles.length;
       const sizeFactor = Math.min(sourceCount / 8, 1); // normalize to 0–1
-      const baseSize = 0.3 + sizeFactor * 0.5; // 0.3 to 0.8
-      const size = c.isBreaking ? Math.max(baseSize, 0.65) : baseSize;
+      const baseSize = 0.35 + sizeFactor * 0.5; // 0.35 to 0.85
+      const size = c.isBreaking ? Math.max(baseSize, 0.7) : baseSize;
 
       return {
         id: c.id,
@@ -70,7 +70,7 @@ function buildArcs(
   const loc = selectedCluster.location;
   const category = selectedCluster.category as NewsCategory;
   const color = CATEGORY_COLORS[category] || CATEGORY_COLORS.world;
-  const arcColor = `${color}4D`;
+  const arcColor = `${color}3A`; // softer opacity for ethereal arcs
 
   return pins
     .filter(
@@ -87,34 +87,36 @@ function buildArcs(
 
 // ── Module-level accessor functions (no inline closures for GlobeGL) ─────────
 
-// Points — slightly translucent colors (append CC = 80% alpha)
+// Points — soft translucent glow (BB = 73% alpha for gentle holographic feel)
 function pointLat(d: object) { return (d as GlobeNewsPin).lat; }
 function pointLng(d: object) { return (d as GlobeNewsPin).lng; }
-function pointAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.04 : 0.01; }
-function pointColor(d: object) { return `${(d as GlobeNewsPin).color}CC`; }
+function pointAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.06 : 0.02; }
+function pointColor(d: object) { return `${(d as GlobeNewsPin).color}BB`; }
 function pointRadius(d: object) { return (d as GlobeNewsPin).size; }
 
-// Rings — slow breathing pulse
+// Rings — dreamy slow breathing pulse
 function ringLat(d: object) { return (d as GlobeNewsPin).lat; }
 function ringLng(d: object) { return (d as GlobeNewsPin).lng; }
 function ringColor(d: object) {
   const c = (d as GlobeNewsPin).color;
-  return (t: number) => `${c}${Math.round((1 - t) * 255).toString(16).padStart(2, '0')}`;
+  // Softer opacity fade for dreamier rings
+  return (t: number) => `${c}${Math.round((1 - t) * (1 - t) * 200).toString(16).padStart(2, '0')}`;
 }
-function ringMaxRadius() { return 5; }
-function ringPropagationSpeed() { return 1.0; }
-function ringRepeatPeriod() { return 2500; }
+function ringMaxRadius() { return 6; }
+function ringPropagationSpeed() { return 0.8; }
+function ringRepeatPeriod() { return 3000; }
 
-// Arcs — thinner, slower dash animation
+// Arcs — ethereal, thin, slow flowing
 function arcStartLat(d: object) { return (d as ArcDatum).startLat; }
 function arcStartLng(d: object) { return (d as ArcDatum).startLng; }
 function arcEndLat(d: object) { return (d as ArcDatum).endLat; }
 function arcEndLng(d: object) { return (d as ArcDatum).endLng; }
 function arcColor(d: object) { return (d as ArcDatum).color; }
-function arcStroke() { return 0.3; }
+function arcStroke() { return 0.2; }
 function arcDashLength() { return 0.4; }
 function arcDashGap() { return 0.2; }
-function arcDashAnimateTime() { return 3000; }
+function arcDashAnimateTime() { return 4000; }
+function arcAltitude() { return 0.15; }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -130,7 +132,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   const globeRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [userInteracting, setUserInteracting] = useState(false);
-  const altitudeRef = useRef<number>(2.3);
+  const altitudeRef = useRef<number>(2.5);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   // Resize observer — debounced so it doesn't fire on every frame during resize
@@ -187,17 +189,17 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     if (globeRef.current) {
       globeRef.current.pointOfView(
         { lat: pin.lat, lng: pin.lng, altitude: 1.5 },
-        2000
+        2500
       );
     }
   }, [onPinClick]);
 
-  // External fly-to — cinematic 2s duration
+  // External fly-to — cinematic 2.5s duration
   useEffect(() => {
     if (onFlyTo && globeRef.current) {
       globeRef.current.pointOfView(
         { lat: onFlyTo.lat, lng: onFlyTo.lng, altitude: 1.5 },
-        2000
+        2500
       );
     }
   }, [onFlyTo]);
@@ -209,7 +211,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
 
     const shouldRotate = !lowPerf && !selectedCluster && !userInteracting && altitudeRef.current >= 1.8;
     controls.autoRotate = shouldRotate;
-    controls.autoRotateSpeed = 0.3;
+    controls.autoRotateSpeed = 0.15;
   }, [selectedCluster, userInteracting, lowPerf]);
 
   // Monitor altitude via OrbitControls 'change' event to toggle rotation on zoom
@@ -237,22 +239,22 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     };
   }, [selectedCluster, userInteracting, lowPerf]);
 
-  // Initial camera position — slightly tilted cinematic view
+  // Initial camera position — slightly tilted cinematic view, more zoomed out for grandeur
   useEffect(() => {
     if (!globeRef.current) return;
 
-    globeRef.current.pointOfView({ lat: 20, lng: 10, altitude: 2.3 }, 0);
+    globeRef.current.pointOfView({ lat: 20, lng: 30, altitude: 2.5 }, 0);
 
     const controls = globeRef.current.controls();
     if (controls) {
       controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.3;
+      controls.autoRotateSpeed = 0.15;
       controls.enableZoom = true;
-      controls.zoomSpeed = 0.5;
+      controls.zoomSpeed = 0.4;
       controls.minDistance = 100;
       controls.maxDistance = 700;
       controls.enableDamping = true;
-      controls.dampingFactor = 0.1;
+      controls.dampingFactor = 0.08;
 
       // Stop auto-rotate on user interaction, resume on release
       const renderer = globeRef.current.renderer();
@@ -293,12 +295,15 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       ref={globeRef}
       width={dimensions.width}
       height={dimensions.height}
-      globeImageUrl="/img/earth-day.jpg"
+      globeImageUrl="/img/earth-blue-marble.jpg"
       bumpImageUrl={lowPerf ? undefined : GLOBE.bumpImageUrl}
       backgroundImageUrl={GLOBE.backgroundImageUrl}
-      atmosphereColor="#7c5cfc"
-      atmosphereAltitude={lowPerf ? 0 : 0.2}
-      // Points layer — slightly translucent colored dots, merged for performance
+      atmosphereColor="#6366f1"
+      atmosphereAltitude={lowPerf ? 0 : 0.35}
+      showGraticules={!lowPerf}
+      // @ts-ignore — react-globe.gl supports this but types may lag
+      globeMaterial={undefined}
+      // Points layer — soft holographic glow dots, floating slightly above surface
       pointsData={pins}
       pointLat={pointLat}
       pointLng={pointLng}
@@ -307,7 +312,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       pointRadius={pointRadius}
       pointsMerge={false}
       onPointClick={handlePointClick}
-      // Rings layer — slow breathing pulse for breaking news (top 10 only)
+      // Rings layer — dreamy slow breathing pulse for breaking news (top 10 only)
       ringsData={lowPerf ? [] : breakingPins}
       ringLat={ringLat}
       ringLng={ringLng}
@@ -315,7 +320,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       ringMaxRadius={ringMaxRadius}
       ringPropagationSpeed={ringPropagationSpeed}
       ringRepeatPeriod={ringRepeatPeriod}
-      // Arcs layer — thin, slow dash animation
+      // Arcs layer — ethereal, thin, slow flowing with gentle curve
       arcsData={lowPerf ? [] : arcs}
       arcStartLat={arcStartLat}
       arcStartLng={arcStartLng}
@@ -326,6 +331,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       arcDashLength={arcDashLength}
       arcDashGap={arcDashGap}
       arcDashAnimateTime={arcDashAnimateTime}
+      arcAltitude={arcAltitude}
       // Performance
       animateIn={false}
       waitForGlobeReady={false}
