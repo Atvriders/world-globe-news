@@ -114,6 +114,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
 }) => {
   const globeRef = useRef<any>(null);
   const [userInteracting, setUserInteracting] = useState(false);
+  const altitudeRef = useRef<number>(2.3); // track current zoom altitude
 
   // Build pins
   const pins = useMemo(() => buildPins(clusters), [clusters]);
@@ -150,14 +151,39 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     }
   }, [onFlyTo]);
 
-  // Auto-rotate: enable when no cluster selected and user is not interacting
+  // Auto-rotate: enable when no cluster selected, not interacting, and zoomed out
   useEffect(() => {
     const controls = globeRef.current?.controls();
     if (!controls) return;
 
-    const shouldRotate = !selectedCluster && !userInteracting;
+    const shouldRotate = !selectedCluster && !userInteracting && altitudeRef.current >= 1.8;
     controls.autoRotate = shouldRotate;
     controls.autoRotateSpeed = 0.3;
+  }, [selectedCluster, userInteracting]);
+
+  // Monitor altitude via OrbitControls 'change' event to toggle rotation on zoom
+  useEffect(() => {
+    const controls = globeRef.current?.controls();
+    if (!controls) return;
+
+    const onCameraChange = () => {
+      const pov = globeRef.current?.pointOfView?.();
+      if (!pov) return;
+      const prevAbove = altitudeRef.current >= 1.8;
+      altitudeRef.current = pov.altitude;
+      const nowAbove = pov.altitude >= 1.8;
+
+      // Only update autoRotate when crossing the threshold
+      if (prevAbove !== nowAbove) {
+        const shouldRotate = !selectedCluster && !userInteracting && nowAbove;
+        controls.autoRotate = shouldRotate;
+      }
+    };
+
+    controls.addEventListener('change', onCameraChange);
+    return () => {
+      controls.removeEventListener('change', onCameraChange);
+    };
   }, [selectedCluster, userInteracting]);
 
   // Initial camera position — slightly tilted cinematic view
@@ -225,7 +251,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       pointAltitude={pointAlt}
       pointColor={pointColor}
       pointRadius={pointRadius}
-      pointsMerge={true}
+      pointsMerge={false}
       onPointClick={handlePointClick}
       // Rings layer — slow breathing pulse for breaking news
       ringsData={breakingPins}

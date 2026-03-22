@@ -432,7 +432,7 @@ const RSS_FEEDS = [
 async function fetchRSSFeed(feed) {
   try {
     const result = await rssParser.parseURL(feed.url);
-    return (result.items || []).slice(0, 15).map((item, idx) => {
+    return (result.items || []).slice(0, 25).map((item, idx) => {
       const title = item.title || '';
       const description = item.contentSnippet || item.content || '';
       const location = extractLocation(`${title} ${description}`);
@@ -493,7 +493,10 @@ async function fetchAllNews() {
     id: c.id,
     title: c.title,
     summary: c.summary,
-    articles: c.articles.map(a => ({
+    articles: c.articles
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .slice(0, 10)
+      .map(a => ({
       id: a.id,
       title: a.title,
       description: a.description,

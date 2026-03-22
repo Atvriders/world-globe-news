@@ -180,13 +180,13 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     right: 0,
     height: 'calc(100vh - 92px)',
     zIndex: 900,
-    display: 'flex',
     pointerEvents: 'none',
   };
 
   const tabStyle: React.CSSProperties = {
-    alignSelf: 'flex-start',
-    marginTop: 24,
+    position: 'absolute',
+    top: 24,
+    right: 0,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -208,6 +208,9 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
   };
 
   const panelStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    right: 0,
     width: 380,
     height: '100%',
     background: 'rgba(18, 18, 24, 0.85)',
