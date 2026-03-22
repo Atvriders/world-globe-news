@@ -397,10 +397,12 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
           <>
             <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
             <button
+              disabled={refreshing}
               onClick={() => {
+                if (refreshing) return;
                 setRefreshing(true);
                 onRefresh();
-                setTimeout(() => setRefreshing(false), 3000);
+                setTimeout(() => setRefreshing(false), 120000); // 2 minute cooldown
               }}
               style={{
                 display: 'flex',
