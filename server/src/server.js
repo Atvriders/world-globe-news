@@ -194,10 +194,13 @@ function extractLocation(text) {
   // Check cities first (more specific)
   for (const [city, coords] of Object.entries(CITY_COORDS)) {
     if (lower.includes(city)) {
+      const cityName = city.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+      const countryInfo = COUNTRY_COORDS[coords.country];
       return {
         lat: coords.lat,
         lng: coords.lng,
-        name: city.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
+        city: cityName,
+        country: countryInfo?.name || coords.country,
         countryCode: coords.country,
       };
     }
@@ -206,7 +209,7 @@ function extractLocation(text) {
   // Check country names
   for (const [code, info] of Object.entries(COUNTRY_COORDS)) {
     if (lower.includes(info.name.toLowerCase())) {
-      return { lat: info.lat, lng: info.lng, name: info.name, countryCode: code };
+      return { lat: info.lat, lng: info.lng, country: info.name, countryCode: code };
     }
   }
 
@@ -239,7 +242,7 @@ function extractLocation(text) {
   for (const [keyword, code] of Object.entries(KEYWORD_MAP)) {
     if (lower.includes(keyword)) {
       const info = COUNTRY_COORDS[code];
-      if (info) return { lat: info.lat, lng: info.lng, name: info.name, countryCode: code };
+      if (info) return { lat: info.lat, lng: info.lng, country: info.name, countryCode: code };
     }
   }
 

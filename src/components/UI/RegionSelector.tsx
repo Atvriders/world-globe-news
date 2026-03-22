@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface RegionSelectorProps {
   onFlyTo: (lat: number, lng: number) => void;
@@ -30,6 +31,7 @@ const fadeInKeyframes = `
 const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const isMobile = useIsMobile();
 
   const handleClick = (region: Region, index: number) => {
     setActiveIndex(index);
@@ -42,7 +44,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
       <div
         style={{
           position: 'fixed',
-          bottom: 48,
+          bottom: isMobile ? 44 : 48,
           left: 16,
           zIndex: 1100,
           background: 'rgba(255,255,255,0.06)',
@@ -70,8 +72,8 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
                 onClick={() => handleClick(region, index)}
                 aria-label={region.name}
                 style={{
-                  width: 32,
-                  height: 32,
+                  width: isMobile ? 28 : 32,
+                  height: isMobile ? 28 : 32,
                   borderRadius: '50%',
                   background: isHovered
                     ? 'rgba(255,255,255,0.12)'

@@ -7,6 +7,7 @@ import {
   CATEGORY_GRADIENTS,
 } from '../../data/theme';
 import { getSourceByName, BIAS_COLORS, BIAS_LABELS } from '../../data/newsSources';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
   const [backHover, setBackHover] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [summaryHover, setSummaryHover] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => ensureKeyframes(), []);
 
@@ -103,10 +105,10 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   const panel: React.CSSProperties = {
     position: 'fixed',
-    top: 56,
+    top: isMobile ? 0 : 56,
     right: 0,
-    width: 420,
-    height: 'calc(100vh - 56px)',
+    width: isMobile ? 'min(420px, 100vw)' : 420,
+    height: isMobile ? '100vh' : 'calc(100vh - 56px)',
     zIndex: 1200,
     background: 'rgba(14, 14, 20, 0.92)',
     backdropFilter: 'blur(12px)',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NewsCategory } from '../../types';
 import { CATEGORY_COLORS, CATEGORY_LABELS, CATEGORY_ICONS, UI } from '../../data/theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface TopBarProps {
   selectedCategory: NewsCategory | 'all';
@@ -70,6 +71,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const isMobile = useIsMobile();
 
   // Clock tick
   useEffect(() => {
@@ -155,7 +157,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
       </div>
 
       {/* ── Center: Category Dropdown ────────────────────── */}
-      <div style={{ position: 'relative', flexShrink: 0 }}>
+      <div style={{ position: 'relative', flexShrink: isMobile ? 1 : 0, flex: isMobile ? 1 : 'none', margin: isMobile ? '0 8px' : undefined }}>
         <button
           ref={buttonRef}
           onClick={() => setMenuOpen((prev) => !prev)}
@@ -165,6 +167,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
             gap: 6,
             padding: '6px 14px',
             borderRadius: 10,
+            width: isMobile ? '100%' : undefined,
             border: `1px solid ${menuOpen ? 'rgba(124, 92, 252, 0.4)' : 'rgba(255,255,255,0.1)'}`,
             background: menuOpen ? 'rgba(124, 92, 252, 0.12)' : 'rgba(255,255,255,0.05)',
             color: '#f5f0eb',
@@ -375,20 +378,22 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         />
 
         {/* Stats */}
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 400,
-            fontFamily: "'Inter', sans-serif",
-            color: UI.textMuted,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {totalStories} stories · {totalSources} sources
-        </span>
+        {!isMobile && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 400,
+              fontFamily: "'Inter', sans-serif",
+              color: UI.textMuted,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {totalStories} stories · {totalSources} sources
+          </span>
+        )}
 
         {/* Update Sources button */}
-        {onRefresh && (
+        {onRefresh && !isMobile && (
           <>
             <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
             <button

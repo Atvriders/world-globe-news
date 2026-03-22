@@ -1,11 +1,14 @@
 import React, { useMemo, CSSProperties } from 'react';
 import { NewsCluster } from '../../types';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface StatsOverlayProps {
   clusters: NewsCluster[];
 }
 
 const StatsOverlay: React.FC<StatsOverlayProps> = ({ clusters }) => {
+  const isMobile = useIsMobile();
+
   const stats = useMemo(() => {
     const total = clusters.length;
     const breaking = clusters.filter((c) => c.isBreaking).length;
@@ -41,6 +44,8 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({ clusters }) => {
     { icon: '\u{1F4E1}', label: 'Sources', value: stats.sources },
     { icon: '\u{1F30D}', label: 'Countries', value: stats.countries },
   ];
+
+  if (isMobile) return null;
 
   return (
     <div style={containerStyle}>

@@ -7,6 +7,7 @@ import {
   CATEGORY_LABELS,
   UI,
 } from '../../data/theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -135,6 +136,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
   const [sortMode, setSortMode] = useState<SortMode>('breaking');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [hoveredSort, setHoveredSort] = useState(false);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => { injectScrollbarStyle(); }, []);
 
@@ -211,7 +213,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
     position: 'absolute',
     top: 0,
     right: 0,
-    width: 380,
+    width: isMobile ? '100vw' : 380,
     height: '100%',
     background: 'rgba(18, 18, 24, 0.85)',
     backdropFilter: 'blur(12px)',

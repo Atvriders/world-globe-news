@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, CSSProperties } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface SearchBarProps {
   value: string;
@@ -16,6 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch, onUrlS
   const [clearHovered, setClearHovered] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   const urlDetected = useMemo(() => isUrl(value), [value]);
 
@@ -67,9 +69,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch, onUrlS
   const containerStyle: CSSProperties = {
     position: 'fixed',
     top: 58,
-    left: 170,
+    left: isMobile ? 60 : 170,
     zIndex: 1100,
-    width: 280,
+    width: isMobile ? 'min(280px, calc(100vw - 200px))' : 280,
     height: 42,
     background: 'rgba(255, 255, 255, 0.06)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
