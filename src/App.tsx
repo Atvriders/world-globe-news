@@ -83,7 +83,8 @@ const App: React.FC = () => {
         c.summary.toLowerCase().includes(q) ||
         c.location?.city?.toLowerCase().includes(q) ||
         c.location?.country?.toLowerCase().includes(q) ||
-        c.articles.some(a => a.title.toLowerCase().includes(q))
+        c.articles.some(a => a.title.toLowerCase().includes(q)) ||
+        c.articles.some(a => a.source.name.toLowerCase().includes(q))
       );
     }
     return result;

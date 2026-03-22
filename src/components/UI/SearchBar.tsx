@@ -141,7 +141,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
           onKeyDown={handleKeyDown}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Search the globe..."
+          placeholder="Search news, sources..."
           style={inputStyle}
         />
         {value.length > 0 && (
