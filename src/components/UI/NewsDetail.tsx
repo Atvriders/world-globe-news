@@ -84,6 +84,17 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
     }
   }, [cluster]);
 
+  // ALL hooks must be above the early return — Rules of Hooks
+  const sortedArticles = useMemo(
+    () => {
+      if (!cluster) return [];
+      return [...cluster.articles].sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+      );
+    },
+    [cluster],
+  );
+
   if (!cluster) return null;
 
   const catLabel = CATEGORY_LABELS[cluster.category];
@@ -92,14 +103,6 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
   const locationText = [cluster.location?.city, cluster.location?.country]
     .filter(Boolean)
     .join(', ') || cluster.location?.countryCode || 'Unknown';
-
-  const sortedArticles = useMemo(
-    () =>
-      [...cluster.articles].sort(
-        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-      ),
-    [cluster.articles],
-  );
 
   // ── Styles ──────────────────────────────────────────────────────────────
 
