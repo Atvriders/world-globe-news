@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { NewsCluster } from '../../types';
 import { CATEGORY_ICONS } from '../../data/theme';
 
@@ -16,6 +16,23 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
     () => clusters.some((c) => c.isBreaking),
     [clusters],
   );
+
+  // ── New-news badge ──────────────────────────────────────────────────────
+  const prevCountRef = useRef(clusters.length);
+  const [showNewBadge, setShowNewBadge] = useState(false);
+
+  useEffect(() => {
+    if (clusters.length > prevCountRef.current) {
+      setShowNewBadge(true);
+      const timer = setTimeout(() => setShowNewBadge(false), 5000);
+      return () => clearTimeout(timer);
+    }
+    prevCountRef.current = clusters.length;
+  }, [clusters.length]);
+
+  useEffect(() => {
+    prevCountRef.current = clusters.length;
+  }, [clusters.length]);
 
   const items = useMemo(() => {
     if (clusters.length === 0) return null;
@@ -56,17 +73,19 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
   if (clusters.length === 0) return null;
 
   return (
-    <div style={styles.wrapper}>
+    <div style={{...styles.wrapper, animation: 'ticker-slide-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'}}>
       {/* Badge */}
       {hasBreaking ? (
         <div style={styles.badge}>
           <span style={styles.dotRed} />
           <span style={styles.badgeTextRed}>BREAKING</span>
+          {showNewBadge && <span className="new-news-badge" style={styles.newBadge}>NEW</span>}
         </div>
       ) : (
         <div style={styles.badge}>
           <span style={styles.dotBlue} />
           <span style={styles.badgeTextBlue}>LATEST</span>
+          {showNewBadge && <span className="new-news-badge" style={styles.newBadge}>NEW</span>}
         </div>
       )}
 
@@ -92,11 +111,22 @@ const tickerCSS = `
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+@keyframes ticker-slide-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes new-badge-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(124,92,252,0.4); }
+  50%      { box-shadow: 0 0 12px rgba(0,198,255,0.8); }
+}
 .news-ticker-track:hover .news-ticker-scroll {
   animation-play-state: paused;
 }
 .news-ticker-item:hover {
   filter: brightness(1.25);
+}
+.new-news-badge {
+  animation: new-badge-pulse 1s ease-in-out infinite;
 }
 `;
 
@@ -172,7 +202,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     whiteSpace: 'nowrap',
-    animation: 'ticker-scroll 1760s linear infinite',
+    animation: 'ticker-scroll 7040s linear infinite',
     paddingLeft: 16,
   },
 
@@ -208,5 +238,19 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 14px',
     flexShrink: 0,
     fontWeight: 300,
+  },
+
+  /* ── New-news badge ────────── */
+  newBadge: {
+    background: 'linear-gradient(135deg, #7c5cfc, #00c6ff)',
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    padding: '1px 6px',
+    borderRadius: 8,
+    marginLeft: 6,
+    lineHeight: '14px',
+    flexShrink: 0,
   },
 };
