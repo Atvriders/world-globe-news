@@ -1,18 +1,34 @@
-import React, { useState, useRef, useEffect, useCallback, CSSProperties } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, CSSProperties } from 'react';
 
 interface SearchBarProps {
   value: string;
   onChange: (q: string) => void;
   onSearch: (q: string) => void;
+  onUrlSearch?: (url: string) => void;
 }
 
 const TRANSITION = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
 
-const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
+const isUrl = (v: string): boolean => v.trimStart().startsWith('http');
+
+const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch, onUrlSearch }) => {
   const [focused, setFocused] = useState(false);
   const [clearHovered, setClearHovered] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const urlDetected = useMemo(() => isUrl(value), [value]);
+
+  const dispatchSearch = useCallback(
+    (q: string) => {
+      if (isUrl(q) && onUrlSearch) {
+        onUrlSearch(q.trim());
+      } else {
+        onSearch(q);
+      }
+    },
+    [onSearch, onUrlSearch]
+  );
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,20 +36,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
       onChange(q);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        onSearch(q);
+        dispatchSearch(q);
       }, 300);
     },
-    [onChange, onSearch]
+    [onChange, dispatchSearch]
   );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        onSearch(value);
+        dispatchSearch(value);
       }
     },
-    [onSearch, value]
+    [dispatchSearch, value]
   );
 
   const handleClear = useCallback(() => {
@@ -129,8 +145,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
         }
       `}</style>
       <div style={containerStyle}>
-        <span style={iconStyle} role="img" aria-label="search">
-          🔍
+        <span style={iconStyle} role="img" aria-label={urlDetected ? 'link' : 'search'}>
+          {urlDetected ? '\uD83D\uDD17' : '\uD83D\uDD0D'}
         </span>
         <input
           ref={inputRef}
@@ -141,7 +157,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
           onKeyDown={handleKeyDown}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Search news, sources..."
+          placeholder={urlDetected ? 'Paste URL to find similar stories...' : 'Search news, sources...'}
           style={inputStyle}
         />
         {value.length > 0 && (

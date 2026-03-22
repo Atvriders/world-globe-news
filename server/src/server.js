@@ -916,6 +916,94 @@ app.get('/api/news/stats', (req, res) => {
   });
 });
 
+// ── Similar articles by URL ──────────────────────────────────────────────
+
+app.get('/api/news/similar', async (req, res) => {
+  const { url } = req.query;
+
+  // Validate URL
+  if (!url) {
+    return res.status(400).json({ error: 'Missing required query parameter: url' });
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'Invalid URL provided' });
+  }
+
+  // Fetch the page with a 10-second timeout
+  let html;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(parsedUrl.href, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'WorldGlobeNews/1.0' },
+    });
+    clearTimeout(timeout);
+    html = await response.text();
+  } catch (err) {
+    const msg = err.name === 'AbortError' ? 'Request timed out (10s)' : err.message;
+    return res.status(502).json({ error: `Failed to fetch URL: ${msg}` });
+  }
+
+  // Extract title from <title> tag
+  const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].replace(/&#?\w+;/g, ' ').trim() : '';
+
+  // Extract og:title
+  const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']*?)["']/i)
+    || html.match(/<meta\s+content=["']([^"']*?)["']\s+property=["']og:title["']/i);
+  const ogTitle = ogTitleMatch ? ogTitleMatch[1].trim() : '';
+
+  // Extract meta description
+  const descMatch = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']*?)["']/i)
+    || html.match(/<meta\s+content=["']([^"']*?)["']\s+name=["']description["']/i);
+  const description = descMatch ? descMatch[1].trim() : '';
+
+  // Use the best available title
+  const bestTitle = ogTitle || title;
+  if (!bestTitle) {
+    return res.status(422).json({ error: 'Could not extract a title from the provided URL' });
+  }
+
+  // Combine title + description for keyword extraction
+  const combinedText = `${bestTitle} ${description}`;
+  const queryKeywords = getKeywords(combinedText);
+
+  if (queryKeywords.size === 0) {
+    return res.status(422).json({ error: 'Could not extract meaningful keywords from the page' });
+  }
+
+  // Compare against all clusters
+  const scored = latestNews.map(cluster => {
+    const clusterKeywords = getKeywords(`${cluster.title} ${cluster.summary}`);
+    const similarity = jaccardSimilarity(queryKeywords, clusterKeywords);
+    return { cluster, similarity };
+  });
+
+  // Sort by similarity descending, take top 10
+  scored.sort((a, b) => b.similarity - a.similarity);
+  const top = scored.slice(0, 10).filter(s => s.similarity > 0);
+
+  const results = top.map(({ cluster, similarity }) => ({
+    ...cluster,
+    similarity: Math.round(similarity * 1000) / 1000,
+  }));
+
+  res.json({
+    query: {
+      url,
+      title: bestTitle,
+      keywords: [...queryKeywords],
+    },
+    similar: results,
+    total: results.length,
+  });
+});
+
 // ── Background polling ───────────────────────────────────────────────────────
 
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes

@@ -29,9 +29,12 @@ const App: React.FC = () => {
     sidebarOpen,
     setSidebarOpen,
     isLoading,
+    setClusters,
   } = useStore();
 
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
+  const [urlSearchTitle, setUrlSearchTitle] = useState<string | null>(null);
+  const [savedClusters, setSavedClusters] = useState<NewsCluster[] | null>(null);
 
   // Handle pin click on globe
   const handlePinClick = useCallback((cluster: NewsCluster) => {
@@ -70,13 +73,42 @@ const App: React.FC = () => {
     setSearchQuery(q);
   }, [setSearchQuery]);
 
+  // Handle URL search — fetch similar stories from backend
+  const handleUrlSearch = useCallback(async (url: string) => {
+    try {
+      // Save current clusters so we can restore them later
+      if (!savedClusters) {
+        setSavedClusters(clusters);
+      }
+      const res = await fetch('/api/news/similar?url=' + encodeURIComponent(url));
+      const data = await res.json();
+      if (data.clusters) {
+        setClusters(data.clusters as NewsCluster[]);
+      }
+      const title = data.title || url;
+      setUrlSearchTitle(title);
+    } catch (err) {
+      console.error('URL search failed:', err);
+    }
+  }, [clusters, savedClusters, setClusters]);
+
+  // Dismiss URL search banner and restore original clusters
+  const handleDismissUrlSearch = useCallback(() => {
+    setUrlSearchTitle(null);
+    setSearchQuery('');
+    if (savedClusters) {
+      setClusters(savedClusters);
+      setSavedClusters(null);
+    }
+  }, [savedClusters, setClusters, setSearchQuery]);
+
   // Filter clusters for sidebar display
   const filteredClusters = useMemo(() => {
     let result = clusters;
     if (selectedCategory !== 'all') {
       result = result.filter(c => c.category === selectedCategory);
     }
-    if (searchQuery) {
+    if (searchQuery && !urlSearchTitle) {
       const q = searchQuery.toLowerCase();
       result = result.filter(c =>
         c.title.toLowerCase().includes(q) ||
@@ -88,7 +120,47 @@ const App: React.FC = () => {
       );
     }
     return result;
-  }, [clusters, selectedCategory, searchQuery]);
+  }, [clusters, selectedCategory, searchQuery, urlSearchTitle]);
+
+  const urlBannerStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 108,
+    left: 170,
+    zIndex: 1100,
+    maxWidth: 280,
+    background: 'rgba(124, 92, 252, 0.15)',
+    border: '1px solid rgba(124, 92, 252, 0.3)',
+    borderRadius: 12,
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    padding: '6px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 12,
+    color: 'rgba(245, 240, 235, 0.85)',
+    fontFamily: "'Inter', sans-serif",
+    animation: 'searchClearFadeIn 0.3s ease forwards',
+  };
+
+  const urlBannerDismissStyle: React.CSSProperties = {
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: 'none',
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: 0,
+    lineHeight: 1,
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    marginLeft: 4,
+  };
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#121218', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif" }}>
@@ -113,7 +185,23 @@ const App: React.FC = () => {
         value={searchQuery}
         onChange={setSearchQuery}
         onSearch={handleSearch}
+        onUrlSearch={handleUrlSearch}
       />
+
+      {urlSearchTitle && (
+        <div style={urlBannerStyle}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            Similar to: {urlSearchTitle}
+          </span>
+          <button
+            style={urlBannerDismissStyle}
+            onClick={handleDismissUrlSearch}
+            aria-label="Dismiss URL search"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <StatsOverlay clusters={filteredClusters} />
 
