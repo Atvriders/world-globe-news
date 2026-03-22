@@ -89,9 +89,9 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
   const catLabel = CATEGORY_LABELS[cluster.category];
   const catIcon = CATEGORY_ICONS[cluster.category];
   const gradient = CATEGORY_GRADIENTS[cluster.category];
-  const locationText = [cluster.location.city, cluster.location.country]
+  const locationText = [cluster.location?.city, cluster.location?.country]
     .filter(Boolean)
-    .join(', ');
+    .join(', ') || cluster.location?.countryCode || 'Unknown';
 
   const sortedArticles = useMemo(
     () =>
