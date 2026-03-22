@@ -7,9 +7,6 @@ const POLL_INTERVAL = 60_000; // 1 minute
 
 export function useNewsFetch() {
   const {
-    selectedCategory,
-    timeFilter,
-    searchQuery,
     setClusters,
     setIsLoading,
     setError,
@@ -20,19 +17,14 @@ export function useNewsFetch() {
 
   const fetchNews = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
-      if (selectedCategory !== 'all') params.set('category', selectedCategory);
-      if (timeFilter) params.set('timeFilter', timeFilter);
-      if (searchQuery) params.set('search', searchQuery);
-
-      const url = `${API_BASE}/news?${params.toString()}`;
-      const res = await fetch(url);
+      // Fetch ALL news — filtering happens client-side in App.tsx filteredClusters
+      const res = await fetch(`${API_BASE}/news`);
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
 
-      if (isMounted.current && data.clusters) {
+      if (isMounted.current && data.clusters && data.clusters.length > 0) {
         setClusters(data.clusters as NewsCluster[]);
         setLastRefresh(Date.now());
         setError(null);
@@ -47,7 +39,7 @@ export function useNewsFetch() {
         setIsLoading(false);
       }
     }
-  }, [selectedCategory, timeFilter, searchQuery, setClusters, setIsLoading, setError, setLastRefresh]);
+  }, [setClusters, setIsLoading, setError, setLastRefresh]);
 
   // Initial fetch + polling
   useEffect(() => {
