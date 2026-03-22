@@ -425,6 +425,92 @@ const RSS_FEEDS = [
 
   // ── Sports ───────────────────────────────────────────────────────────────────
   { id: 'espn', name: 'ESPN', url: 'https://www.espn.com/espn/rss/news', category: 'sports' },
+
+  // ── More US News ──────────────────────────────────────────────────────────
+  { id: 'pbs-newshour', name: 'PBS NewsHour', url: 'https://www.pbs.org/newshour/feeds/rss/headlines', category: 'world' },
+  { id: 'propublica', name: 'ProPublica', url: 'https://feeds.propublica.org/propublica/main', category: 'politics' },
+  { id: 'axios', name: 'Axios', url: 'https://api.axios.com/feed/', category: 'world' },
+  { id: 'the-atlantic', name: 'The Atlantic', url: 'https://www.theatlantic.com/feed/all/', category: 'world' },
+  { id: 'slate', name: 'Slate', url: 'https://slate.com/feeds/all.rss', category: 'world' },
+  { id: 'vox', name: 'Vox', url: 'https://www.vox.com/rss/index.xml', category: 'world' },
+  { id: 'vice-news', name: 'Vice News', url: 'https://www.vice.com/en/rss', category: 'world' },
+  { id: 'buzzfeed-world', name: 'BuzzFeed News', url: 'https://www.buzzfeed.com/world.xml', category: 'world' },
+  { id: 'csmonitor', name: 'Christian Science Monitor', url: 'https://rss.csmonitor.com/feeds/world', category: 'world' },
+  { id: 'nyt-world', name: 'New York Times World', url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', category: 'world' },
+  { id: 'nyt-politics', name: 'New York Times Politics', url: 'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml', category: 'politics' },
+  { id: 'nyt-business', name: 'New York Times Business', url: 'https://rss.nytimes.com/services/xml/rss/nyt/Business.xml', category: 'business' },
+  { id: 'nyt-tech', name: 'New York Times Tech', url: 'https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml', category: 'technology' },
+  { id: 'nyt-science', name: 'New York Times Science', url: 'https://rss.nytimes.com/services/xml/rss/nyt/Science.xml', category: 'science' },
+  { id: 'washpost-world', name: 'Washington Post World', url: 'https://feeds.washingtonpost.com/rss/world', category: 'world' },
+  { id: 'washpost-politics', name: 'Washington Post Politics', url: 'https://feeds.washingtonpost.com/rss/politics', category: 'politics' },
+
+  // ── More UK/Europe ────────────────────────────────────────────────────────
+  { id: 'irish-times', name: 'Irish Times', url: 'https://www.irishtimes.com/cmlink/news-1.1319192', category: 'world' },
+  { id: 'swissinfo', name: 'Swiss Info', url: 'https://www.swissinfo.ch/eng/rss/all', category: 'world' },
+  { id: 'politico-eu', name: 'Politico EU', url: 'https://www.politico.eu/rss', category: 'politics' },
+  { id: 'rte-news', name: 'RTE News', url: 'https://www.rte.ie/news/rss/news-headlines.xml', category: 'world' },
+  { id: 'the-local-de', name: 'The Local Germany', url: 'https://feeds.thelocal.com/rss/de', category: 'world' },
+  { id: 'the-local-fr', name: 'The Local France', url: 'https://feeds.thelocal.com/rss/fr', category: 'world' },
+  { id: 'the-local-es', name: 'The Local Spain', url: 'https://feeds.thelocal.com/rss/es', category: 'world' },
+  { id: 'the-local-it', name: 'The Local Italy', url: 'https://feeds.thelocal.com/rss/it', category: 'world' },
+  { id: 'the-local-se', name: 'The Local Sweden', url: 'https://feeds.thelocal.com/rss/se', category: 'world' },
+  { id: 'guardian-science', name: 'The Guardian Science', url: 'https://www.theguardian.com/science/rss', category: 'science' },
+  { id: 'guardian-environment', name: 'The Guardian Environment', url: 'https://www.theguardian.com/environment/rss', category: 'science' },
+  { id: 'bbc-politics', name: 'BBC UK Politics', url: 'https://feeds.bbci.co.uk/news/politics/rss.xml', category: 'politics' },
+
+  // ── More Asia ─────────────────────────────────────────────────────────────
+  { id: 'channel-news-asia', name: 'Channel News Asia', url: 'https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml', category: 'world' },
+  { id: 'bangkok-post', name: 'Bangkok Post', url: 'https://www.bangkokpost.com/rss/data/topstories.xml', category: 'world' },
+  { id: 'korea-herald', name: 'Korea Herald', url: 'http://www.koreaherald.com/common/rss_xml.php?ct=102', category: 'world' },
+  { id: 'jakarta-post', name: 'Jakarta Post', url: 'https://www.thejakartapost.com/feed', category: 'world' },
+  { id: 'scmp-china', name: 'SCMP China', url: 'https://www.scmp.com/rss/4/feed', category: 'world' },
+  { id: 'dawn-pakistan', name: 'Dawn Pakistan', url: 'https://www.dawn.com/feed', category: 'world' },
+  { id: 'hindustan-times', name: 'Hindustan Times', url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml', category: 'world' },
+  { id: 'the-hindu', name: 'The Hindu', url: 'https://www.thehindu.com/news/national/feeder/default.rss', category: 'world' },
+  { id: 'straits-times', name: 'Straits Times', url: 'https://www.straitstimes.com/news/world/rss.xml', category: 'world' },
+  { id: 'abc-australia', name: 'ABC Australia', url: 'https://www.abc.net.au/news/feed/1948/rss.xml', category: 'world' },
+
+  // ── Middle East / Africa ──────────────────────────────────────────────────
+  { id: 'middle-east-eye', name: 'Middle East Eye', url: 'https://www.middleeasteye.net/rss', category: 'world' },
+  { id: 'the-national-uae', name: 'The National UAE', url: 'https://www.thenationalnews.com/rss', category: 'world' },
+  { id: 'daily-maverick', name: 'Daily Maverick', url: 'https://www.dailymaverick.co.za/article/feed/', category: 'world' },
+  { id: 'allafrica', name: 'All Africa', url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', category: 'world' },
+  { id: 'punch-nigeria', name: 'Punch Nigeria', url: 'https://punchng.com/feed/', category: 'world' },
+
+  // ── Latin America ─────────────────────────────────────────────────────────
+  { id: 'mercopress', name: 'Merco Press', url: 'https://en.mercopress.com/rss', category: 'world' },
+
+  // ── Science / Tech / Health ───────────────────────────────────────────────
+  { id: 'new-scientist', name: 'New Scientist', url: 'https://www.newscientist.com/feed/home', category: 'science' },
+  { id: 'phys-org', name: 'Phys.org', url: 'https://phys.org/rss-feed/', category: 'science' },
+  { id: 'medical-news-today', name: 'Medical News Today', url: 'https://www.medicalnewstoday.com/newsfeeds/rss', category: 'health' },
+  { id: 'live-science', name: 'Live Science', url: 'https://www.livescience.com/feeds/all', category: 'science' },
+  { id: 'space-com', name: 'Space.com', url: 'https://www.space.com/feeds/all', category: 'science' },
+  { id: 'mit-tech-review', name: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', category: 'technology' },
+  { id: 'zdnet', name: 'ZDNet', url: 'https://www.zdnet.com/news/rss.xml', category: 'technology' },
+  { id: 'engadget', name: 'Engadget', url: 'https://www.engadget.com/rss.xml', category: 'technology' },
+  { id: 'hacker-news', name: 'Hacker News', url: 'https://hnrss.org/frontpage', category: 'technology' },
+
+  // ── Business / Finance ────────────────────────────────────────────────────
+  { id: 'business-insider', name: 'Business Insider', url: 'https://www.businessinsider.com/rss', category: 'business' },
+  { id: 'fortune', name: 'Fortune', url: 'https://fortune.com/feed/', category: 'business' },
+  { id: 'inc', name: 'Inc', url: 'https://www.inc.com/rss/', category: 'business' },
+  { id: 'investopedia', name: 'Investopedia', url: 'https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline', category: 'business' },
+  { id: 'reuters-business', name: 'Reuters Business', url: 'https://www.reutersagency.com/feed/?best-topics=business-finance', category: 'business' },
+  { id: 'bloomberg-markets', name: 'Bloomberg Markets', url: 'https://feeds.bloomberg.com/markets/news.rss', category: 'business' },
+
+  // ── More Sports ───────────────────────────────────────────────────────────
+  { id: 'sky-sports', name: 'Sky Sports', url: 'https://www.skysports.com/rss/12040', category: 'sports' },
+  { id: 'bbc-sport-football', name: 'BBC Sport Football', url: 'https://feeds.bbci.co.uk/sport/football/rss.xml', category: 'sports' },
+  { id: 'bbc-sport-cricket', name: 'BBC Sport Cricket', url: 'https://feeds.bbci.co.uk/sport/cricket/rss.xml', category: 'sports' },
+  { id: 'guardian-football', name: 'The Guardian Football', url: 'https://www.theguardian.com/football/rss', category: 'sports' },
+
+  // ── Entertainment ─────────────────────────────────────────────────────────
+  { id: 'variety', name: 'Variety', url: 'https://variety.com/feed/', category: 'entertainment' },
+  { id: 'hollywood-reporter', name: 'Hollywood Reporter', url: 'https://www.hollywoodreporter.com/feed/', category: 'entertainment' },
+  { id: 'rolling-stone', name: 'Rolling Stone', url: 'https://www.rollingstone.com/feed/', category: 'entertainment' },
+  { id: 'pitchfork', name: 'Pitchfork', url: 'https://pitchfork.com/feed/feed-news/rss', category: 'entertainment' },
+  { id: 'deadline', name: 'Deadline', url: 'https://deadline.com/feed/', category: 'entertainment' },
 ];
 
 // ── Fetch RSS feeds ──────────────────────────────────────────────────────────
