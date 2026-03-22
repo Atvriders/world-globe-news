@@ -120,13 +120,13 @@ export const UI = {
 
 export const GLOBE = {
   atmosphereColor:    '#7c5cfc',
-  atmosphereAltitude: 0.25,
-  globeImageUrl:      '/img/earth-blue-marble.jpg',
+  atmosphereAltitude: 0.3,
+  globeImageUrl:      '/img/earth-day.jpg',
   bumpImageUrl:       '/img/earth-topology.png',
   backgroundImageUrl: '/img/night-sky.png',
-  pinBaseSize:        0.4,
-  pinBreakingSize:    0.7,
-  arcStroke:          0.5,
+  pinBaseSize:        0.35,
+  pinBreakingSize:    0.6,
+  arcStroke:          0.3,
 };
 
 // ── Time filter labels ──────────────────────────────────────────────────────

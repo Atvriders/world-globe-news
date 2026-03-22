@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
 import Globe from 'react-globe.gl';
 import { NewsCluster, GlobeNewsPin, NewsCategory } from '../../types';
 import { CATEGORY_COLORS, GLOBE } from '../../data/theme';
@@ -75,34 +75,34 @@ function buildArcs(
 
 // ── Module-level accessor functions (no inline closures for GlobeGL) ─────────
 
-// Points
+// Points — slightly translucent colors (append CC = 80% alpha)
 function pointLat(d: object) { return (d as GlobeNewsPin).lat; }
 function pointLng(d: object) { return (d as GlobeNewsPin).lng; }
 function pointAlt(d: object) { return (d as GlobeNewsPin).isBreaking ? 0.04 : 0.01; }
-function pointColor(d: object) { return (d as GlobeNewsPin).color; }
+function pointColor(d: object) { return `${(d as GlobeNewsPin).color}CC`; }
 function pointRadius(d: object) { return (d as GlobeNewsPin).size; }
 
-// Rings (breaking news pulse)
+// Rings — slow breathing pulse
 function ringLat(d: object) { return (d as GlobeNewsPin).lat; }
 function ringLng(d: object) { return (d as GlobeNewsPin).lng; }
 function ringColor(d: object) {
   const c = (d as GlobeNewsPin).color;
   return (t: number) => `${c}${Math.round((1 - t) * 255).toString(16).padStart(2, '0')}`;
 }
-function ringMaxRadius() { return 4; }
-function ringPropagationSpeed() { return 1.5; }
-function ringRepeatPeriod() { return 2000; }
+function ringMaxRadius() { return 5; }
+function ringPropagationSpeed() { return 1.0; }
+function ringRepeatPeriod() { return 2500; }
 
-// Arcs
+// Arcs — thinner, slower dash animation
 function arcStartLat(d: object) { return (d as ArcDatum).startLat; }
 function arcStartLng(d: object) { return (d as ArcDatum).startLng; }
 function arcEndLat(d: object) { return (d as ArcDatum).endLat; }
 function arcEndLng(d: object) { return (d as ArcDatum).endLng; }
 function arcColor(d: object) { return (d as ArcDatum).color; }
-function arcStroke() { return GLOBE.arcStroke; }
+function arcStroke() { return 0.3; }
 function arcDashLength() { return 0.4; }
 function arcDashGap() { return 0.2; }
-function arcDashAnimateTime() { return 2000; }
+function arcDashAnimateTime() { return 3000; }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -113,6 +113,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   onFlyTo,
 }) => {
   const globeRef = useRef<any>(null);
+  const [userInteracting, setUserInteracting] = useState(false);
 
   // Build pins
   const pins = useMemo(() => buildPins(clusters), [clusters]);
@@ -134,33 +135,79 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     if (globeRef.current) {
       globeRef.current.pointOfView(
         { lat: pin.lat, lng: pin.lng, altitude: 1.5 },
-        1500
+        2000
       );
     }
   }, [onPinClick]);
 
-  // External fly-to
+  // External fly-to — cinematic 2s duration
   useEffect(() => {
     if (onFlyTo && globeRef.current) {
       globeRef.current.pointOfView(
         { lat: onFlyTo.lat, lng: onFlyTo.lng, altitude: 1.5 },
-        1500
+        2000
       );
     }
   }, [onFlyTo]);
 
-  // Initial camera position
+  // Auto-rotate: enable when no cluster selected and user is not interacting
   useEffect(() => {
-    if (globeRef.current) {
-      globeRef.current.pointOfView({ lat: 25, lng: 0, altitude: 2.0 }, 0);
+    const controls = globeRef.current?.controls();
+    if (!controls) return;
 
-      const controls = globeRef.current.controls();
-      if (controls) {
-        controls.autoRotate = false;
-        controls.enableZoom = true;
-        controls.zoomSpeed = 0.6;
-        controls.minDistance = 100;
-        controls.maxDistance = 700;
+    const shouldRotate = !selectedCluster && !userInteracting;
+    controls.autoRotate = shouldRotate;
+    controls.autoRotateSpeed = 0.3;
+  }, [selectedCluster, userInteracting]);
+
+  // Initial camera position — slightly tilted cinematic view
+  useEffect(() => {
+    if (!globeRef.current) return;
+
+    globeRef.current.pointOfView({ lat: 20, lng: 10, altitude: 2.3 }, 0);
+
+    const controls = globeRef.current.controls();
+    if (controls) {
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.3;
+      controls.enableZoom = true;
+      controls.zoomSpeed = 0.5;
+      controls.minDistance = 100;
+      controls.maxDistance = 700;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+
+      // Stop auto-rotate on user interaction, resume on release
+      const renderer = globeRef.current.renderer();
+      const domElement = renderer?.domElement;
+      if (domElement) {
+        const onInteractStart = () => setUserInteracting(true);
+        const onInteractEnd = () => setUserInteracting(false);
+
+        domElement.addEventListener('mousedown', onInteractStart);
+        domElement.addEventListener('touchstart', onInteractStart, { passive: true });
+        domElement.addEventListener('wheel', onInteractStart, { passive: true });
+        domElement.addEventListener('mouseup', onInteractEnd);
+        domElement.addEventListener('touchend', onInteractEnd);
+
+        // Resume rotation after brief pause on wheel
+        let wheelTimer: ReturnType<typeof setTimeout>;
+        const onWheel = () => {
+          setUserInteracting(true);
+          clearTimeout(wheelTimer);
+          wheelTimer = setTimeout(() => setUserInteracting(false), 1500);
+        };
+        domElement.addEventListener('wheel', onWheel, { passive: true });
+
+        return () => {
+          domElement.removeEventListener('mousedown', onInteractStart);
+          domElement.removeEventListener('touchstart', onInteractStart);
+          domElement.removeEventListener('wheel', onInteractStart);
+          domElement.removeEventListener('mouseup', onInteractEnd);
+          domElement.removeEventListener('touchend', onInteractEnd);
+          domElement.removeEventListener('wheel', onWheel);
+          clearTimeout(wheelTimer);
+        };
       }
     }
   }, []);
@@ -168,21 +215,21 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   return (
     <Globe
       ref={globeRef}
-      globeImageUrl={GLOBE.globeImageUrl}
+      globeImageUrl="/img/earth-day.jpg"
       bumpImageUrl={GLOBE.bumpImageUrl}
       backgroundImageUrl={GLOBE.backgroundImageUrl}
-      atmosphereColor={GLOBE.atmosphereColor}
-      atmosphereAltitude={GLOBE.atmosphereAltitude}
-      // Points layer — clean colored dots, no text
+      atmosphereColor="#7c5cfc"
+      atmosphereAltitude={0.3}
+      // Points layer — slightly translucent colored dots, merged for performance
       pointsData={pins}
       pointLat={pointLat}
       pointLng={pointLng}
       pointAltitude={pointAlt}
       pointColor={pointColor}
       pointRadius={pointRadius}
-      pointsMerge={false}
+      pointsMerge={true}
       onPointClick={handlePointClick}
-      // Rings layer — breaking news pulse
+      // Rings layer — slow breathing pulse for breaking news
       ringsData={breakingPins}
       ringLat={ringLat}
       ringLng={ringLng}
@@ -190,7 +237,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       ringMaxRadius={ringMaxRadius}
       ringPropagationSpeed={ringPropagationSpeed}
       ringRepeatPeriod={ringRepeatPeriod}
-      // Arcs layer — connects selected pin to same-category pins
+      // Arcs layer — thin, slow dash animation
       arcsData={arcs}
       arcStartLat={arcStartLat}
       arcStartLng={arcStartLng}

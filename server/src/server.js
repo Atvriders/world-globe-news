@@ -354,23 +354,77 @@ function jaccardSimilarity(setA, setB) {
 // ── RSS Feed sources ─────────────────────────────────────────────────────────
 
 const RSS_FEEDS = [
+  // ── BBC ──────────────────────────────────────────────────────────────────────
   { id: 'bbc-world', name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml', category: 'world' },
   { id: 'bbc-tech', name: 'BBC Technology', url: 'http://feeds.bbci.co.uk/news/technology/rss.xml', category: 'technology' },
   { id: 'bbc-business', name: 'BBC Business', url: 'http://feeds.bbci.co.uk/news/business/rss.xml', category: 'business' },
   { id: 'bbc-science', name: 'BBC Science', url: 'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml', category: 'science' },
-  { id: 'aljazeera', name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', category: 'world' },
-  { id: 'npr-world', name: 'NPR World', url: 'https://feeds.npr.org/1004/rss.xml', category: 'world' },
-  { id: 'npr-politics', name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml', category: 'politics' },
-  { id: 'france24', name: 'France 24', url: 'https://www.france24.com/en/rss', category: 'world' },
-  { id: 'dw', name: 'DW News', url: 'https://rss.dw.com/rdf/rss-en-all', category: 'world' },
-  { id: 'guardian-world', name: 'The Guardian', url: 'https://www.theguardian.com/world/rss', category: 'world' },
-  { id: 'guardian-tech', name: 'The Guardian Tech', url: 'https://www.theguardian.com/technology/rss', category: 'technology' },
+  { id: 'bbc-sport', name: 'BBC Sport', url: 'http://feeds.bbci.co.uk/sport/rss.xml', category: 'sports' },
+  { id: 'bbc-health', name: 'BBC Health', url: 'http://feeds.bbci.co.uk/news/health/rss.xml', category: 'health' },
+  { id: 'bbc-entertainment', name: 'BBC Entertainment', url: 'http://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml', category: 'entertainment' },
+
+  // ── US News ──────────────────────────────────────────────────────────────────
+  { id: 'cnn-top', name: 'CNN Top Stories', url: 'http://rss.cnn.com/rss/cnn_topstories.rss', category: 'world' },
+  { id: 'cnn-world', name: 'CNN World', url: 'http://rss.cnn.com/rss/cnn_world.rss', category: 'world' },
+  { id: 'fox-news', name: 'Fox News', url: 'https://moxie.foxnews.com/google-publisher/latest.xml', category: 'world' },
+  { id: 'nbc-news', name: 'NBC News', url: 'https://feeds.nbcnews.com/nbcnews/public/news', category: 'world' },
+  { id: 'abc-news', name: 'ABC News', url: 'http://feeds.abcnews.com/abcnews/usheadlines', category: 'world' },
   { id: 'cbs-world', name: 'CBS News', url: 'https://www.cbsnews.com/latest/rss/world', category: 'world' },
   { id: 'cbs-politics', name: 'CBS Politics', url: 'https://www.cbsnews.com/latest/rss/politics', category: 'politics' },
   { id: 'cbs-science', name: 'CBS Science', url: 'https://www.cbsnews.com/latest/rss/science', category: 'science' },
-  { id: 'abc-news', name: 'ABC News', url: 'http://feeds.abcnews.com/abcnews/usheadlines', category: 'world' },
+  { id: 'npr-world', name: 'NPR World', url: 'https://feeds.npr.org/1004/rss.xml', category: 'world' },
+  { id: 'npr-politics', name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml', category: 'politics' },
+  { id: 'usa-today', name: 'USA Today', url: 'http://rssfeeds.usatoday.com/UsatodaycomNation-TopStories', category: 'world' },
+  { id: 'politico', name: 'Politico', url: 'https://rss.politico.com/politics-news.xml', category: 'politics' },
+  { id: 'the-hill', name: 'The Hill', url: 'https://thehill.com/feed/', category: 'politics' },
+
+  // ── US Tech ──────────────────────────────────────────────────────────────────
+  { id: 'techcrunch', name: 'TechCrunch', url: 'https://techcrunch.com/feed/', category: 'technology' },
+  { id: 'the-verge', name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', category: 'technology' },
+  { id: 'ars-technica', name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index', category: 'technology' },
+  { id: 'wired', name: 'Wired', url: 'https://www.wired.com/feed/rss', category: 'technology' },
+
+  // ── US Business ──────────────────────────────────────────────────────────────
+  { id: 'cnbc', name: 'CNBC', url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114', category: 'business' },
+  { id: 'marketwatch', name: 'MarketWatch', url: 'https://feeds.marketwatch.com/marketwatch/topstories', category: 'business' },
+
+  // ── UK ───────────────────────────────────────────────────────────────────────
+  { id: 'guardian-world', name: 'The Guardian', url: 'https://www.theguardian.com/world/rss', category: 'world' },
+  { id: 'guardian-tech', name: 'The Guardian Tech', url: 'https://www.theguardian.com/technology/rss', category: 'technology' },
+  { id: 'guardian-business', name: 'The Guardian Business', url: 'https://www.theguardian.com/uk/business/rss', category: 'business' },
+  { id: 'guardian-sport', name: 'The Guardian Sport', url: 'https://www.theguardian.com/uk/sport/rss', category: 'sports' },
+  { id: 'sky-news-world', name: 'Sky News World', url: 'https://feeds.skynews.com/feeds/rss/world.xml', category: 'world' },
+  { id: 'independent-world', name: 'The Independent', url: 'https://www.independent.co.uk/news/world/rss', category: 'world' },
+
+  // ── Europe ───────────────────────────────────────────────────────────────────
+  { id: 'france24', name: 'France 24', url: 'https://www.france24.com/en/rss', category: 'world' },
+  { id: 'dw', name: 'DW News', url: 'https://rss.dw.com/rdf/rss-en-all', category: 'world' },
+  { id: 'euronews', name: 'EuroNews', url: 'https://www.euronews.com/rss', category: 'world' },
+  { id: 'spiegel-intl', name: 'Der Spiegel International', url: 'https://www.spiegel.de/international/index.rss', category: 'world' },
+  { id: 'ansa-english', name: 'ANSA English', url: 'https://www.ansa.it/english/news/rss.xml', category: 'world' },
+
+  // ── Middle East ──────────────────────────────────────────────────────────────
+  { id: 'aljazeera', name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', category: 'world' },
+  { id: 'al-arabiya', name: 'Al Arabiya English', url: 'https://english.alarabiya.net/tools/rss', category: 'world' },
+
+  // ── Asia-Pacific ─────────────────────────────────────────────────────────────
   { id: 'scmp-world', name: 'SCMP', url: 'https://www.scmp.com/rss/5/feed', category: 'world' },
   { id: 'toi', name: 'Times of India', url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', category: 'world' },
+  { id: 'nikkei-asia', name: 'Nikkei Asia', url: 'https://asia.nikkei.com/rss', category: 'business' },
+  { id: 'japan-times', name: 'Japan Times', url: 'https://www.japantimes.co.jp/feed/', category: 'world' },
+  { id: 'yonhap', name: 'Yonhap News', url: 'https://en.yna.co.kr/RSS/news.xml', category: 'world' },
+
+  // ── Africa ───────────────────────────────────────────────────────────────────
+  { id: 'news24-sa', name: 'News24 South Africa', url: 'https://feeds.24.com/articles/news24/TopStories/rss', category: 'world' },
+  { id: 'nation-kenya', name: 'Daily Nation Kenya', url: 'https://nation.africa/service/rss/feeds/news.rss', category: 'world' },
+
+  // ── Science & Health ─────────────────────────────────────────────────────────
+  { id: 'nature', name: 'Nature News', url: 'https://www.nature.com/nature.rss', category: 'science' },
+  { id: 'science-daily', name: 'Science Daily', url: 'https://www.sciencedaily.com/rss/all.rss', category: 'science' },
+  { id: 'who-news', name: 'WHO News', url: 'https://www.who.int/rss-feeds/news-english.xml', category: 'health' },
+
+  // ── Sports ───────────────────────────────────────────────────────────────────
+  { id: 'espn', name: 'ESPN', url: 'https://www.espn.com/espn/rss/news', category: 'sports' },
 ];
 
 // ── Fetch RSS feeds ──────────────────────────────────────────────────────────
