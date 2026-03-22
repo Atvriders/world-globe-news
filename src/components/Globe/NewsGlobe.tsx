@@ -113,8 +113,22 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   onFlyTo,
 }) => {
   const globeRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [userInteracting, setUserInteracting] = useState(false);
-  const altitudeRef = useRef<number>(2.3); // track current zoom altitude
+  const altitudeRef = useRef<number>(2.3);
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  // Resize observer — globe scales to container
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Build pins
   const pins = useMemo(() => buildPins(clusters), [clusters]);
@@ -237,8 +251,11 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   }, []);
 
   return (
+    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
     <Globe
       ref={globeRef}
+      width={dimensions.width}
+      height={dimensions.height}
       globeImageUrl="/img/earth-day.jpg"
       bumpImageUrl={GLOBE.bumpImageUrl}
       backgroundImageUrl={GLOBE.backgroundImageUrl}
@@ -276,6 +293,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       animateIn={true}
       waitForGlobeReady={true}
     />
+    </div>
   );
 };
 
