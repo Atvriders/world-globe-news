@@ -485,11 +485,17 @@ function mergeNearbyClusters(clusters) {
         locCount++;
       }
     }
-    const centroidLat = sumLat / locCount;
-    const centroidLng = sumLng / locCount;
+    const centroidLat = locCount > 0 ? sumLat / locCount : 0;
+    const centroidLng = locCount > 0 ? sumLng / locCount : 0;
+
+    // Skip group if no valid locations at all
+    if (locCount === 0) {
+      for (const c of group) merged.push(c);
+      continue;
+    }
 
     // Location name: use the first cluster's location info (city or country)
-    const bestLoc = group[0].location;
+    const bestLoc = group.find(c => c.location)?.location || { lat: centroidLat, lng: centroidLng, country: 'Unknown', countryCode: '' };
     const locationName = bestLoc?.city || bestLoc?.country || `${centroidLat.toFixed(1)}, ${centroidLng.toFixed(1)}`;
 
     // Most common category
@@ -869,6 +875,248 @@ const RSS_FEEDS = [
   { id: 'entertainment-weekly', name: 'Entertainment Weekly', url: 'https://ew.com/feed/', category: 'entertainment' },
   { id: 'nme', name: 'NME', url: 'https://www.nme.com/feed', category: 'entertainment' },
   { id: 'gamespot', name: 'GameSpot', url: 'https://www.gamespot.com/feeds/mashup/', category: 'entertainment' },
+
+  // ── US Conservative/Right-leaning ──────────────────────────────────────────
+  { id: 'newsmax', name: 'Newsmax', url: 'https://www.newsmax.com/rss/Newsfront/1/', category: 'politics' },
+  { id: 'newsmax-world', name: 'Newsmax World', url: 'https://www.newsmax.com/rss/World/4/', category: 'world' },
+  { id: 'washington-examiner', name: 'Washington Examiner', url: 'https://www.washingtonexaminer.com/section/news/feed', category: 'politics' },
+  { id: 'epoch-times', name: 'The Epoch Times', url: 'https://www.theepochtimes.com/c-us/feed', category: 'politics' },
+  { id: 'the-federalist', name: 'The Federalist', url: 'https://thefederalist.com/feed/', category: 'politics' },
+  { id: 'free-beacon', name: 'Washington Free Beacon', url: 'https://freebeacon.com/feed/', category: 'politics' },
+
+  // ── US Liberal/Left-leaning ────────────────────────────────────────────────
+  { id: 'salon', name: 'Salon', url: 'https://www.salon.com/feed/', category: 'politics' },
+  { id: 'the-nation', name: 'The Nation', url: 'https://www.thenation.com/feed/', category: 'politics' },
+  { id: 'jacobin', name: 'Jacobin', url: 'https://jacobin.com/feed/', category: 'politics' },
+  { id: 'common-dreams', name: 'Common Dreams', url: 'https://www.commondreams.org/feeds/feed/news', category: 'politics' },
+  { id: 'democracy-now', name: 'Democracy Now', url: 'https://www.democracynow.org/democracynow.rss', category: 'politics' },
+
+  // ── International (additional) ─────────────────────────────────────────────
+  { id: 'rt-news', name: 'RT News', url: 'https://www.rt.com/rss/news/', category: 'world' },
+  { id: 'press-tv', name: 'Press TV', url: 'https://www.presstv.ir/RSS', category: 'world' },
+  { id: 'cgtn', name: 'CGTN', url: 'https://www.cgtn.com/feed/rss', category: 'world' },
+  { id: 'anadolu-agency', name: 'Anadolu Agency', url: 'https://www.aa.com.tr/en/rss/default?cat=world', category: 'world' },
+  { id: 'bernama', name: 'Bernama', url: 'https://www.bernama.com/en/rss/general.xml', category: 'world' },
+  { id: 'scmp-hk', name: 'SCMP Hong Kong', url: 'https://www.scmp.com/rss/2/feed', category: 'world' },
+
+  // ── Tech (additional) ──────────────────────────────────────────────────────
+  { id: 'gizmodo', name: 'Gizmodo', url: 'https://gizmodo.com/rss', category: 'technology' },
+  { id: 'mashable', name: 'Mashable', url: 'https://mashable.com/feeds/rss/all', category: 'technology' },
+  { id: 'venturebeat', name: 'VentureBeat', url: 'https://venturebeat.com/feed/', category: 'technology' },
+  { id: 'techmeme', name: 'Techmeme', url: 'https://www.techmeme.com/feed.xml', category: 'technology' },
+
+  // ── Business (additional) ──────────────────────────────────────────────────
+  { id: 'yahoo-finance', name: 'Yahoo Finance', url: 'https://finance.yahoo.com/news/rssurl', category: 'business' },
+  { id: 'seeking-alpha', name: 'Seeking Alpha', url: 'https://seekingalpha.com/feed.xml', category: 'business' },
+
+  // ── Sports (additional) ────────────────────────────────────────────────────
+  { id: 'cbs-sports', name: 'CBS Sports', url: 'https://www.cbssports.com/rss/headlines/', category: 'sports' },
+
+  // ── Entertainment (additional) ─────────────────────────────────────────────
+  { id: 'tmz', name: 'TMZ', url: 'https://www.tmz.com/rss.xml', category: 'entertainment' },
+  { id: 'people-magazine', name: 'People Magazine', url: 'https://people.com/feed/', category: 'entertainment' },
+
+  // ── Africa (expanded) ──────────────────────────────────────────────────────
+  { id: 'thisday-nigeria', name: 'This Day Nigeria', url: 'https://www.thisdaylive.com/feed', category: 'world' },
+  { id: 'businessday-nigeria', name: 'Business Day Nigeria', url: 'https://businessday.ng/feed/', category: 'business' },
+  { id: 'the-star-kenya', name: 'The Star Kenya', url: 'https://www.the-star.co.ke/rss', category: 'world' },
+  { id: 'capital-fm-kenya', name: 'Capital FM Kenya', url: 'https://www.capitalfm.co.ke/news/feed/', category: 'world' },
+  { id: 'iol-south-africa', name: 'IOL South Africa', url: 'https://www.iol.co.za/rss', category: 'world' },
+  { id: 'timeslive-sa', name: 'Times Live SA', url: 'https://www.timeslive.co.za/rss', category: 'world' },
+  { id: 'new-times-rwanda', name: 'New Times Rwanda', url: 'https://www.newtimes.co.rw/feed', category: 'world' },
+  { id: 'herald-zimbabwe', name: 'The Herald Zimbabwe', url: 'https://www.herald.co.zw/feed/', category: 'world' },
+  { id: 'morocco-world-news', name: 'Morocco World News', url: 'https://www.moroccoworldnews.com/feed', category: 'world' },
+  { id: 'libya-observer', name: 'Libya Observer', url: 'https://www.libyaobserver.ly/feed', category: 'world' },
+  { id: 'tunisia-live', name: 'Tunisia Live', url: 'https://www.tunisia-live.net/feed', category: 'world' },
+  { id: 'reporter-ethiopia', name: 'The Reporter Ethiopia', url: 'https://www.thereporterethiopia.com/feed', category: 'world' },
+  { id: 'graphic-ghana', name: 'Graphic Online Ghana', url: 'https://www.graphic.com.gh/feed', category: 'world' },
+  { id: 'observer-ghana', name: 'Ghana Business News', url: 'https://www.ghanabusinessnews.com/feed/', category: 'business' },
+  { id: 'daily-trust-ng', name: 'Daily Trust Nigeria', url: 'https://dailytrust.com/feed', category: 'world' },
+  { id: 'guardian-ng', name: 'The Guardian Nigeria', url: 'https://guardian.ng/feed/', category: 'world' },
+  { id: 'leadership-ng', name: 'Leadership Nigeria', url: 'https://leadership.ng/feed/', category: 'world' },
+  { id: 'independent-ug', name: 'The Independent Uganda', url: 'https://www.independent.co.ug/feed/', category: 'world' },
+  { id: 'observer-ug', name: 'The Observer Uganda', url: 'https://observer.ug/feed', category: 'world' },
+  { id: 'standard-media-ke', name: 'Standard Media Kenya', url: 'https://www.standardmedia.co.ke/rss/headlines.php', category: 'world' },
+  { id: 'sowetan-live-sa', name: 'Sowetan Live SA', url: 'https://www.sowetanlive.co.za/rss', category: 'world' },
+  { id: 'africa-news', name: 'Africanews', url: 'https://www.africanews.com/feed/', category: 'world' },
+  { id: 'itn-africa', name: 'IT News Africa', url: 'https://www.itnewsafrica.com/feed/', category: 'technology' },
+  { id: 'techcabal', name: 'TechCabal', url: 'https://techcabal.com/feed/', category: 'technology' },
+  { id: 'technext-africa', name: 'TechNext Africa', url: 'https://technext24.com/feed/', category: 'technology' },
+
+  // ── Latin America (expanded) ───────────────────────────────────────────────
+  { id: 'el-universal-mx', name: 'El Universal Mexico', url: 'https://www.eluniversal.com.mx/rss.xml', category: 'world' },
+  { id: 'folha-sp', name: 'Folha de S.Paulo', url: 'https://feeds.folha.uol.com.br/world/rss091.xml', category: 'world' },
+  { id: 'la-nacion-ar', name: 'La Nacion Argentina', url: 'https://www.lanacion.com.ar/arcio/rss/', category: 'world' },
+  { id: 'el-comercio-pe', name: 'El Comercio Peru', url: 'https://elcomercio.pe/arcio/rss/', category: 'world' },
+  { id: 'el-tiempo-co', name: 'El Tiempo Colombia', url: 'https://www.eltiempo.com/rss/', category: 'world' },
+  { id: 'prensa-latina', name: 'Prensa Latina', url: 'https://www.plenglish.com/feed/', category: 'world' },
+  { id: 'jamaica-observer', name: 'Jamaica Observer', url: 'https://www.jamaicaobserver.com/feed/', category: 'world' },
+  { id: 'trinidad-guardian', name: 'Trinidad Guardian', url: 'https://www.guardian.co.tt/feed', category: 'world' },
+  { id: 'buenos-aires-herald', name: 'Buenos Aires Herald', url: 'https://buenosairesherald.com/feed/', category: 'world' },
+  { id: 'argentina-independent', name: 'Dialogo Americas', url: 'https://dialogo-americas.com/feed/', category: 'world' },
+  { id: 'latin-finance', name: 'Latin Finance', url: 'https://www.latinfinance.com/feed', category: 'business' },
+  { id: 'havana-times', name: 'Havana Times', url: 'https://havanatimes.org/feed/', category: 'world' },
+  { id: 'teleSUR-english', name: 'teleSUR English', url: 'https://www.telesurenglish.net/rss/news.xml', category: 'world' },
+  { id: 'santiago-times', name: 'Santiago Times', url: 'https://santiagotimes.cl/feed/', category: 'world' },
+  { id: 'peru-reports', name: 'Peru Reports', url: 'https://perureports.com/feed/', category: 'world' },
+  { id: 'argentina-reports', name: 'Argentina Reports', url: 'https://argentinareports.com/feed/', category: 'world' },
+  { id: 'guatemala-times', name: 'Guatemala Times', url: 'https://www.guatemala-times.com/feed/', category: 'world' },
+
+  // ── South/Southeast Asia (expanded) ────────────────────────────────────────
+  { id: 'rappler-ph', name: 'Rappler Philippines', url: 'https://www.rappler.com/feed/', category: 'world' },
+  { id: 'the-star-my', name: 'The Star Malaysia', url: 'https://www.thestar.com.my/rss/News/', category: 'world' },
+  { id: 'nst-malaysia', name: 'New Straits Times', url: 'https://www.nst.com.my/rss', category: 'world' },
+  { id: 'coconuts', name: 'Coconuts', url: 'https://coconuts.co/feed/', category: 'world' },
+  { id: 'myanmar-now', name: 'Myanmar Now', url: 'https://myanmar-now.org/en/feed', category: 'world' },
+  { id: 'kathmandu-post', name: 'Kathmandu Post', url: 'https://kathmandupost.com/feed', category: 'world' },
+  { id: 'daily-mirror-lk', name: 'Daily Mirror Sri Lanka', url: 'https://www.dailymirror.lk/RSS_Feeds/breaking_news.xml', category: 'world' },
+  { id: 'deccan-herald', name: 'Deccan Herald', url: 'https://www.deccanherald.com/rss', category: 'world' },
+  { id: 'scroll-in', name: 'Scroll.in', url: 'https://scroll.in/feed', category: 'world' },
+  { id: 'the-wire-india', name: 'The Wire India', url: 'https://thewire.in/feed', category: 'world' },
+  { id: 'livemint', name: 'LiveMint India', url: 'https://www.livemint.com/rss/news', category: 'business' },
+  { id: 'firstpost-india', name: 'Firstpost India', url: 'https://www.firstpost.com/rss/india.xml', category: 'world' },
+  { id: 'the-quint', name: 'The Quint', url: 'https://www.thequint.com/quintlab/rss-feeds/thequint-rss-feed.xml', category: 'world' },
+  { id: 'news18-india', name: 'News18 India', url: 'https://www.news18.com/rss/india.xml', category: 'world' },
+  { id: 'geo-tv-pakistan', name: 'Geo TV Pakistan', url: 'https://www.geo.tv/rss/1/0', category: 'world' },
+  { id: 'express-tribune-pk', name: 'Express Tribune Pakistan', url: 'https://tribune.com.pk/feed/home', category: 'world' },
+  { id: 'dhaka-tribune', name: 'Dhaka Tribune', url: 'https://www.dhakatribune.com/feed', category: 'world' },
+  { id: 'phnom-penh-post', name: 'Phnom Penh Post', url: 'https://www.phnompenhpost.com/feed', category: 'world' },
+  { id: 'vientiane-times', name: 'Vientiane Times', url: 'https://www.vientianetimes.org.la/feed', category: 'world' },
+  { id: 'irrawaddy', name: 'The Irrawaddy', url: 'https://www.irrawaddy.com/feed', category: 'world' },
+  { id: 'frontier-myanmar', name: 'Frontier Myanmar', url: 'https://www.frontiermyanmar.net/feed/', category: 'world' },
+  { id: 'nikkei-asia-tech', name: 'Nikkei Asia Tech', url: 'https://asia.nikkei.com/rss/feed/nar', category: 'technology' },
+  { id: 'south-china-morning-business', name: 'SCMP Business', url: 'https://www.scmp.com/rss/3/feed', category: 'business' },
+
+  // ── Central/Eastern Europe (expanded) ──────────────────────────────────────
+  { id: 'kyiv-independent', name: 'Kyiv Independent', url: 'https://kyivindependent.com/feed/', category: 'world' },
+  { id: 'prague-monitor', name: 'Prague Monitor', url: 'https://praguemonitor.com/feed', category: 'world' },
+  { id: 'romania-insider', name: 'Romania Insider', url: 'https://www.romania-insider.com/feed', category: 'world' },
+  { id: 'emerging-europe', name: 'Emerging Europe', url: 'https://emerging-europe.com/feed/', category: 'world' },
+  { id: 'hungary-today', name: 'Hungary Today', url: 'https://hungarytoday.hu/feed/', category: 'world' },
+  { id: 'polands-news', name: 'Notes from Poland', url: 'https://notesfrompoland.com/feed/', category: 'world' },
+  { id: 'ua-pravda-en', name: 'Ukrainska Pravda English', url: 'https://www.pravda.com.ua/eng/rss/', category: 'world' },
+  { id: 'belsat-en', name: 'Belsat English', url: 'https://belsat.eu/en/feed', category: 'world' },
+  { id: 'sofia-globe', name: 'The Sofia Globe', url: 'https://sofiaglobe.com/feed/', category: 'world' },
+  { id: 'intellinews', name: 'Intellinews', url: 'https://www.intellinews.com/rss', category: 'business' },
+  { id: 'croatiaweek', name: 'Croatia Week', url: 'https://www.croatiaweek.com/feed/', category: 'world' },
+  { id: 'serbian-monitor', name: 'Serbian Monitor', url: 'https://www.serbianmonitor.com/en/feed/', category: 'world' },
+  { id: 'baltic-times', name: 'The Baltic Times', url: 'https://www.baltictimes.com/rss/', category: 'world' },
+  { id: 'err-news-ee', name: 'ERR News Estonia', url: 'https://news.err.ee/rss', category: 'world' },
+  { id: 'lrt-en', name: 'LRT English Lithuania', url: 'https://www.lrt.lt/en/rss', category: 'world' },
+
+  // ── Science/Environment (expanded) ─────────────────────────────────────────
+  { id: 'mongabay', name: 'Mongabay', url: 'https://news.mongabay.com/feed/', category: 'science' },
+  { id: 'climate-home-news', name: 'Climate Home News', url: 'https://www.climatechangenews.com/feed/', category: 'science' },
+  { id: 'inside-climate-news', name: 'Inside Climate News', url: 'https://insideclimatenews.org/feed/', category: 'science' },
+  { id: 'eenews', name: 'E&E News', url: 'https://www.eenews.net/feed/', category: 'science' },
+  { id: 'undark', name: 'Undark', url: 'https://undark.org/feed/', category: 'science' },
+  { id: 'retraction-watch', name: 'Retraction Watch', url: 'https://retractionwatch.com/feed/', category: 'science' },
+  { id: 'science-mag', name: 'Science Magazine', url: 'https://www.science.org/rss/news_current.xml', category: 'science' },
+  { id: 'the-lancet', name: 'The Lancet', url: 'https://www.thelancet.com/rssfeed/lancet_online.xml', category: 'health' },
+  { id: 'environmental-health-news', name: 'Environmental Health News', url: 'https://www.ehn.org/feed', category: 'science' },
+  { id: 'grist', name: 'Grist', url: 'https://grist.org/feed/', category: 'science' },
+  { id: 'hakai-magazine', name: 'Hakai Magazine', url: 'https://hakaimagazine.com/feed/', category: 'science' },
+  { id: 'atlas-obscura', name: 'Atlas Obscura', url: 'https://www.atlasobscura.com/feeds/latest', category: 'science' },
+  { id: 'quanta-magazine', name: 'Quanta Magazine', url: 'https://api.quantamagazine.org/feed/', category: 'science' },
+
+  // ── Technology (expanded) ──────────────────────────────────────────────────
+  { id: 'the-information', name: 'The Information', url: 'https://www.theinformation.com/feed', category: 'technology' },
+  { id: 'android-authority', name: 'Android Authority', url: 'https://www.androidauthority.com/feed/', category: 'technology' },
+  { id: 'macrumors', name: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', category: 'technology' },
+  { id: 'windows-central', name: 'Windows Central', url: 'https://www.windowscentral.com/feed', category: 'technology' },
+  { id: 'techradar', name: 'TechRadar', url: 'https://www.techradar.com/rss', category: 'technology' },
+  { id: 'the-next-web', name: 'The Next Web', url: 'https://thenextweb.com/feed/', category: 'technology' },
+  { id: 'howtogeek', name: 'How-To Geek', url: 'https://www.howtogeek.com/feed/', category: 'technology' },
+  { id: 'dark-reading', name: 'Dark Reading', url: 'https://www.darkreading.com/rss.xml', category: 'technology' },
+  { id: 'bleeping-computer', name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/feed/', category: 'technology' },
+  { id: 'krebs-on-security', name: 'Krebs on Security', url: 'https://krebsonsecurity.com/feed/', category: 'technology' },
+  { id: 'the-hacker-news', name: 'The Hacker News', url: 'https://feeds.feedburner.com/TheHackersNews', category: 'technology' },
+  { id: 'slashdot', name: 'Slashdot', url: 'https://rss.slashdot.org/Slashdot/slashdotMain', category: 'technology' },
+  { id: 'arstechnica-gaming', name: 'Ars Technica Gaming', url: 'https://feeds.arstechnica.com/arstechnica/gaming', category: 'entertainment' },
+  { id: '9to5google', name: '9to5Google', url: 'https://9to5google.com/feed/', category: 'technology' },
+
+  // ── Middle East (expanded) ─────────────────────────────────────────────────
+  { id: 'al-monitor', name: 'Al-Monitor', url: 'https://www.al-monitor.com/rss', category: 'world' },
+  { id: 'jerusalem-post', name: 'Jerusalem Post', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx', category: 'world' },
+  { id: 'new-arab', name: 'The New Arab', url: 'https://www.newarab.com/rss', category: 'world' },
+  { id: 'daily-sabah', name: 'Daily Sabah', url: 'https://www.dailysabah.com/rssFeed/todays-headlines', category: 'world' },
+  { id: 'ahram-online', name: 'Ahram Online Egypt', url: 'https://english.ahram.org.eg/UI/Front/RSS.aspx', category: 'world' },
+  { id: 'khaleej-times', name: 'Khaleej Times', url: 'https://www.khaleejtimes.com/rss', category: 'world' },
+  { id: 'saudi-gazette', name: 'Saudi Gazette', url: 'https://saudigazette.com.sa/feed', category: 'world' },
+  { id: 'jordan-times', name: 'Jordan Times', url: 'https://www.jordantimes.com/feed', category: 'world' },
+
+  // ── Oceania/Pacific (expanded) ─────────────────────────────────────────────
+  { id: 'sbs-australia', name: 'SBS Australia', url: 'https://www.sbs.com.au/news/feed', category: 'world' },
+  { id: 'the-australian', name: 'The Australian', url: 'https://www.theaustralian.com.au/feed', category: 'world' },
+  { id: 'sydney-morning-herald', name: 'Sydney Morning Herald', url: 'https://www.smh.com.au/rss/feed.xml', category: 'world' },
+  { id: 'the-age-au', name: 'The Age Melbourne', url: 'https://www.theage.com.au/rss/feed.xml', category: 'world' },
+  { id: 'fiji-times', name: 'Fiji Times', url: 'https://www.fijitimes.com.fj/feed/', category: 'world' },
+  { id: 'samoa-observer', name: 'Samoa Observer', url: 'https://www.samoaobserver.ws/feed', category: 'world' },
+
+  // ── Additional Business/Finance ────────────────────────────────────────────
+  { id: 'financial-times-world', name: 'Financial Times World', url: 'https://www.ft.com/rss/home/uk', category: 'business' },
+  { id: 'barrons', name: "Barron's", url: 'https://www.barrons.com/articles/rss', category: 'business' },
+  { id: 'coindesk', name: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', category: 'business' },
+  { id: 'crypto-news', name: 'The Block', url: 'https://www.theblock.co/rss.xml', category: 'business' },
+  { id: 'ft-tech', name: 'Financial Times Tech', url: 'https://www.ft.com/technology?format=rss', category: 'technology' },
+  { id: 'morningstar', name: 'Morningstar', url: 'https://www.morningstar.com/rss/feeds', category: 'business' },
+
+  // ── Additional Health ──────────────────────────────────────────────────────
+  { id: 'healthline', name: 'Healthline', url: 'https://www.healthline.com/rss', category: 'health' },
+  { id: 'fierce-pharma', name: 'Fierce Pharma', url: 'https://www.fiercepharma.com/rss/xml', category: 'health' },
+  { id: 'endpoints-news', name: 'Endpoints News', url: 'https://endpts.com/feed/', category: 'health' },
+
+  // ── Additional Sports ──────────────────────────────────────────────────────
+  { id: 'the-athletic', name: 'The Athletic', url: 'https://theathletic.com/feed/', category: 'sports' },
+  { id: 'sporting-news', name: 'Sporting News', url: 'https://www.sportingnews.com/rss', category: 'sports' },
+  { id: 'cricbuzz', name: 'Cricbuzz', url: 'https://www.cricbuzz.com/rss', category: 'sports' },
+  { id: 'olympics', name: 'Olympics News', url: 'https://olympics.com/en/news/rss', category: 'sports' },
+  { id: 'rugby-world', name: 'Rugby World', url: 'https://www.rugbyworld.com/feed', category: 'sports' },
+
+  // ── Additional Entertainment/Culture ───────────────────────────────────────
+  { id: 'indiewire', name: 'IndieWire', url: 'https://www.indiewire.com/feed/', category: 'entertainment' },
+  { id: 'collider', name: 'Collider', url: 'https://collider.com/feed/', category: 'entertainment' },
+  { id: 'stereogum', name: 'Stereogum', url: 'https://www.stereogum.com/feed/', category: 'entertainment' },
+  { id: 'the-wrap', name: 'The Wrap', url: 'https://www.thewrap.com/feed/', category: 'entertainment' },
+  { id: 'giant-freakin-robot', name: 'Giant Freakin Robot', url: 'https://www.giantfreakinrobot.com/feed', category: 'entertainment' },
+  { id: 'kotaku', name: 'Kotaku', url: 'https://kotaku.com/rss', category: 'entertainment' },
+
+  // ── Additional US/Canada Regional ──────────────────────────────────────────
+  { id: 'philly-inquirer', name: 'Philadelphia Inquirer', url: 'https://www.inquirer.com/arcio/rss/', category: 'world' },
+  { id: 'seattle-times', name: 'Seattle Times', url: 'https://www.seattletimes.com/feed/', category: 'world' },
+  { id: 'sfgate', name: 'SFGate', url: 'https://www.sfgate.com/feed/', category: 'world' },
+  { id: 'detroit-free-press', name: 'Detroit Free Press', url: 'https://www.freep.com/arcio/rss/', category: 'world' },
+  { id: 'dallas-morning-news', name: 'Dallas Morning News', url: 'https://www.dallasnews.com/arcio/rss/', category: 'world' },
+  { id: 'toronto-star', name: 'Toronto Star', url: 'https://www.thestar.com/feed/', category: 'world' },
+  { id: 'montreal-gazette', name: 'Montreal Gazette', url: 'https://montrealgazette.com/feed/', category: 'world' },
+
+  // ── East Asia (expanded) ───────────────────────────────────────────────────
+  { id: 'china-daily', name: 'China Daily', url: 'https://www.chinadaily.com.cn/rss/world_rss.xml', category: 'world' },
+  { id: 'global-times-cn', name: 'Global Times', url: 'https://www.globaltimes.cn/rss/outbrain.xml', category: 'world' },
+  { id: 'asahi-shimbun', name: 'Asahi Shimbun', url: 'https://www.asahi.com/ajw/rss/index.rss', category: 'world' },
+  { id: 'korea-joongang', name: 'Korea JoongAng Daily', url: 'https://koreajoongangdaily.joins.com/xmlFile/rss_headline.xml', category: 'world' },
+  { id: 'focus-taiwan', name: 'Focus Taiwan', url: 'https://focustaiwan.tw/rss', category: 'world' },
+  { id: 'xinhua-english', name: 'Xinhua English', url: 'https://www.news.cn/english/rss/worldnews.xml', category: 'world' },
+
+  // ── Nordic/Scandinavia (expanded) ──────────────────────────────────────────
+  { id: 'yle-news', name: 'YLE News Finland', url: 'https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_NEWS', category: 'world' },
+  { id: 'iceland-monitor', name: 'Iceland Monitor', url: 'https://icelandmonitor.mbl.is/rss/rss.xml', category: 'world' },
+  { id: 'copenhagen-post', name: 'Copenhagen Post', url: 'https://cphpost.dk/feed/', category: 'world' },
+  { id: 'thelocal-dk', name: 'The Local Denmark', url: 'https://feeds.thelocal.com/rss/dk', category: 'world' },
+
+  // ── Central Asia / Caucasus ────────────────────────────────────────────────
+  { id: 'eurasianet', name: 'Eurasianet', url: 'https://eurasianet.org/feed', category: 'world' },
+  { id: 'oc-media', name: 'OC Media Caucasus', url: 'https://oc-media.org/feed/', category: 'world' },
+  { id: 'the-astana-times', name: 'The Astana Times', url: 'https://astanatimes.com/feed/', category: 'world' },
+  { id: 'jam-news', name: 'JAM News', url: 'https://jam-news.net/feed/', category: 'world' },
+
+  // ── Wire Services / Global ─────────────────────────────────────────────────
+  { id: 'un-news', name: 'UN News', url: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml', category: 'world' },
+  { id: 'irin-news', name: 'The New Humanitarian', url: 'https://www.thenewhumanitarian.org/feed', category: 'world' },
+  { id: 'devex', name: 'Devex', url: 'https://www.devex.com/news/rss', category: 'world' },
+  { id: 'relief-web', name: 'ReliefWeb', url: 'https://reliefweb.int/updates/rss.xml', category: 'world' },
+  { id: 'global-voices', name: 'Global Voices', url: 'https://globalvoices.org/feed/', category: 'world' },
+  { id: 'ips-news', name: 'IPS News', url: 'https://www.ipsnews.net/feed/', category: 'world' },
 ];
 
 // ── Fetch RSS feeds ──────────────────────────────────────────────────────────
@@ -971,10 +1219,27 @@ async function fetchAllNews() {
   console.log(`[News] ${withLocation.length} articles geocoded, ${withoutLocation.length} without location`);
 
   // Cluster articles by topic, then merge nearby clusters by geography
-  const topicClusters = clusterArticles(withLocation);
-  const clusters = mergeNearbyClusters(topicClusters);
+  let clusters;
+  try {
+    const topicClusters = clusterArticles(withLocation);
+    clusters = mergeNearbyClusters(topicClusters);
+  } catch (err) {
+    console.error('[News] Clustering error:', err.message);
+    clusters = withLocation.map((a, i) => ({
+      id: `fallback-${i}`,
+      title: a.title,
+      summary: a.description || a.title,
+      articles: [a],
+      location: a._location,
+      category: a._category,
+      importance: 1,
+      firstPublished: a.publishedAt,
+      lastUpdated: a.publishedAt,
+      isBreaking: false,
+    }));
+  }
 
-  console.log(`[News] ${topicClusters.length} topic clusters → ${clusters.length} after geographic merge`);
+  console.log(`[News] ${clusters.length} clusters after processing`);
 
   // Format for API response
   const formatted = clusters.map(c => ({
