@@ -113,6 +113,7 @@ const App: React.FC = () => {
         similarClusters.sort((a: any, b: any) => (b.similarity || 0) - (a.similarity || 0));
         setClusters(similarClusters);
         setUrlSearchTitle(title);
+        setSearchQuery(''); // Clear text search so sidebar doesn't filter URL results
         setSelectedCategory('all'); // Show all categories for URL results
         setSelectedCluster(null); // Close any open detail
         setSidebarOpen(true);
@@ -127,7 +128,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error('URL search failed:', err);
     }
-  }, [clusters, savedClusters, setClusters, setSidebarOpen]);
+  }, [clusters, savedClusters, setClusters, setSidebarOpen, setSearchQuery]);
 
   // Dismiss URL search banner and restore original clusters
   const handleDismissUrlSearch = useCallback(() => {
