@@ -1509,7 +1509,6 @@ const RSS_FEEDS = [
   { id: 'realclearpolitics', name: 'RealClearPolitics', url: 'https://www.realclearpolitics.com/index.xml', category: 'politics' },
   { id: 'the-dispatch', name: 'The Dispatch', url: 'https://thedispatch.com/feed/', category: 'politics' },
   { id: 'the-bulwark', name: 'The Bulwark', url: 'https://www.thebulwark.com/feed/', category: 'politics' },
-  { id: 'lawfare', name: 'Lawfare', url: 'https://www.lawfaremedia.org/feed', category: 'politics' },
   { id: 'brookings', name: 'Brookings Institution', url: 'https://www.brookings.edu/feed/', category: 'politics' },
   { id: 'rand-corp', name: 'RAND Corporation', url: 'https://www.rand.org/news/press.xml', category: 'politics' },
   { id: 'heritage-foundation', name: 'Heritage Foundation', url: 'https://www.heritage.org/rss/all-commentary', category: 'politics' },
@@ -1522,13 +1521,8 @@ const RSS_FEEDS = [
   { id: 'american-banker', name: 'American Banker', url: 'https://www.americanbanker.com/feed', category: 'business' },
 
   // ── US Education / Higher Ed ──────────────────────────────────────────────
-  { id: 'chronicle-higher-ed', name: 'Chronicle of Higher Education', url: 'https://www.chronicle.com/feed', category: 'science' },
-  { id: 'inside-higher-ed', name: 'Inside Higher Ed', url: 'https://www.insidehighered.com/rss/news', category: 'science' },
-  { id: 'ed-week', name: 'Education Week', url: 'https://www.edweek.org/feed', category: 'science' },
 
   // ── Additional US Regional Newspapers ─────────────────────────────────────
-  { id: 'boston-globe', name: 'Boston Globe', url: 'https://www.bostonglobe.com/arc/outboundfeeds/rss/homepage/?outputType=xml', category: 'world' },
-  { id: 'denver-post', name: 'Denver Post', url: 'https://www.denverpost.com/feed/', category: 'world' },
   { id: 'san-diego-union', name: 'San Diego Union-Tribune', url: 'https://www.sandiegouniontribune.com/feed/', category: 'world' },
   { id: 'charlotte-observer', name: 'Charlotte Observer', url: 'https://www.charlotteobserver.com/latest-news/article1928.ece/ALTERNATES/FREE_1140/rss.xml', category: 'world' },
   { id: 'orlando-sentinel', name: 'Orlando Sentinel', url: 'https://www.orlandosentinel.com/arcio/rss/', category: 'world' },
@@ -1661,6 +1655,7 @@ const RSS_FEEDS = [
   { id: 'daytona-beach-news', name: 'Daytona Beach News-Journal', url: 'https://www.news-journalonline.com/arcio/rss/', category: 'world' },
 
 ];
+
 // ── Fetch RSS feeds ──────────────────────────────────────────────────────────
 
 async function fetchRSSFeed(feed) {
@@ -1983,29 +1978,96 @@ app.get('/api/news/similar', async (req, res) => {
 
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-async function initialFetch() {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      await fetchAllNews();
-      if (latestNews.length > 0) {
-        console.log(`[Boot] Initial fetch succeeded on attempt ${attempt}`);
-        return;
-      }
-    } catch (err) {
-      console.error(`[Boot] Attempt ${attempt} failed:`, err.message);
-    }
-    if (attempt < 3) {
-      console.log(`[Boot] Retrying in 5s...`);
-      await new Promise(r => setTimeout(r, 5000));
+// Priority feeds — fetch these first for fast initial load
+const PRIORITY_FEED_IDS = new Set([
+  'bbc-world', 'bbc-tech', 'bbc-business', 'bbc-science',
+  'aljazeera', 'npr-world', 'france24', 'dw',
+  'guardian-world', 'cnn-top', 'cnn-world', 'cbs-world',
+  'abc-news', 'nbc-news', 'fox-news', 'reuters-world',
+  'nyt-world', 'nyt-us', 'washpost-world', 'politico',
+  'techcrunch', 'the-verge', 'ars-technica', 'wired',
+  'cnbc', 'bloomberg', 'espn', 'bbc-sport',
+  'scmp-world', 'toi', 'sky-news-world', 'independent',
+  'newsmax', 'newsmax-world', 'nature-news', 'nasa',
+  'usa-today', 'the-hill', 'npr-politics', 'ap-news',
+]);
+
+async function fetchPriorityFeeds() {
+  const priority = RSS_FEEDS.filter(f => PRIORITY_FEED_IDS.has(f.id));
+  console.log(`[Boot] Quick-loading ${priority.length} priority feeds...`);
+  const startTime = Date.now();
+
+  const tasks = priority.map(feed => () => fetchRSSFeed(feed));
+  const results = await runWithConcurrency(tasks, CONCURRENCY_LIMIT);
+
+  const allArticles = [];
+  let successCount = 0;
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value.length > 0) {
+      allArticles.push(...result.value);
+      successCount++;
     }
   }
-  console.log('[Boot] Starting with empty data, will retry on next poll');
+
+  console.log(`[Boot] Got ${allArticles.length} articles from ${successCount}/${priority.length} priority feeds in ${Date.now() - startTime}ms`);
+
+  const withLocation = allArticles.filter(a => a._location);
+
+  if (withLocation.length > 0) {
+    let clusters;
+    try {
+      const topicClusters = clusterArticles(withLocation);
+      clusters = mergeNearbyClusters(topicClusters);
+    } catch (err) {
+      console.error('[Boot] Clustering error:', err.message);
+      clusters = withLocation.map((a, i) => ({
+        id: `boot-${i}`, title: a.title, summary: a.description || a.title,
+        articles: [a], location: a._location, category: a._category,
+        importance: 1, firstPublished: a.publishedAt, lastUpdated: a.publishedAt, isBreaking: false,
+      }));
+    }
+
+    const formatted = clusters.map(c => ({
+      id: c.id, title: c.title,
+      summary: c.summary && c.summary.length > 500 ? c.summary.slice(0, 500) + '…' : c.summary,
+      articles: c.articles.map(a => ({
+        id: a.id, title: a.title,
+        description: a.description && a.description.length > 500 ? a.description.slice(0, 500) + '…' : a.description,
+        url: a.url, imageUrl: a.imageUrl, publishedAt: a.publishedAt,
+        source: a.source, author: a.author, category: a.category,
+        country: a._location?.countryCode || a.country || '',
+      })),
+      location: c.location, category: c.category, importance: c.importance,
+      firstPublished: c.firstPublished, lastUpdated: c.lastUpdated, isBreaking: c.isBreaking,
+    }));
+
+    if (formatted.length > 0) {
+      latestNews = formatted;
+      lastFetchTime = Date.now();
+      console.log(`[Boot] Serving ${formatted.length} clusters from priority feeds`);
+    }
+  }
 }
 
 // ── Start server ─────────────────────────────────────────────────────────────
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`[Server] World Globe News backend running on port ${PORT}`);
-  await initialFetch();
-  setInterval(fetchAllNews, POLL_INTERVAL);
+
+  // Quick priority fetch first (serves clients fast), then full fetch in background
+  fetchPriorityFeeds().then(() => {
+    console.log('[Boot] Priority feeds loaded, starting full feed cycle in background...');
+    // Full fetch runs after priority, then on interval
+    fetchAllNews().then(() => {
+      console.log('[Boot] Full feed cycle complete');
+    }).catch(err => {
+      console.error('[Boot] Full feed cycle error:', err.message);
+    });
+    setInterval(fetchAllNews, POLL_INTERVAL);
+  }).catch(err => {
+    console.error('[Boot] Priority fetch error:', err.message);
+    // Still start polling even if priority fails
+    fetchAllNews().catch(() => {});
+    setInterval(fetchAllNews, POLL_INTERVAL);
+  });
 });
