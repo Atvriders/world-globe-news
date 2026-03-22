@@ -4,11 +4,11 @@ Interactive 3D globe news viewer — browse breaking news from around the world 
 
 ## Features
 
-- **3D Interactive Globe** — Soft, animated globe with purple atmosphere glow, auto-rotation (stops when zoomed in), cinematic fly-to animations, responsive to window resize
+- **3D Holographic Globe** — Soft glowing orb with warm indigo atmosphere, buttery smooth rotation, dreamy ring pulses, ethereal arcs, cinematic fly-to, responsive to window resize
 - **250 RSS Feed Sources** — Aggregates real-time news from exactly 250 RSS feeds worldwide including Reuters, AP, BBC, CNN, NYT, Al Jazeera, NHK, SCMP, and more
 - **Political Bias Indicators** — Each source labeled with bias rating (Left, Center-Left, Center, Center-Right, Right, Independent) based on AllSides/MBFC data
-- **Auto-Geocoding** — Extracts locations from headlines using 70+ country codes, 65+ major cities, and 50+ keyword mappings
-- **News Clustering** — Jaccard similarity groups articles about the same story from different sources into a single pin (no article cap)
+- **Auto-Geocoding** — Extracts locations from headlines using 70+ country codes, 100+ major cities, 50+ keyword mappings, and 35+ geographic landmarks (Strait of Hormuz, Suez Canal, Gaza Strip, Crimea, etc.)
+- **News Clustering** — Jaccard similarity groups articles by topic, then geographic proximity (100km) merges nearby clusters into location groups (e.g., all Strait of Hormuz stories in one pin)
 - **Breaking News Detection** — 3+ sources covering the same story triggers breaking status with pulsing ring animations
 - **Expandable Source Cards** — Click any source to see article summary + political bias badge, then "Open Source" button to read the original
 - **URL Search** — Paste any article URL to find similar stories being covered on the globe
@@ -20,7 +20,8 @@ Interactive 3D globe news viewer — browse breaking news from around the world 
 - **Live Stats Overlay** — Floating panel showing story count, breaking count, active sources, countries covered
 - **News Ticker** — Ultra-slow scrolling headlines with slide-in animation and "NEW" badge on fresh stories (30s display)
 - **Update Sources** — Manual refresh button to pull latest news on demand
-- **Comfy Futuristic UI** — Glassmorphism panels, gradient accents, 12 news-themed animations, warm charcoal theme
+- **Low Performance Mode** — Toggle for slower devices: disables atmosphere, rings, arcs, reduces pins to 50
+- **Holographic Comfy UI** — Frosted glass panels with inner glow, warm indigo-violet gradients, 16 animations, 2026-2030 aesthetic
 
 ## Performance
 
