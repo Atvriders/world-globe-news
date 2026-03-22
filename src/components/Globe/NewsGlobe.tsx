@@ -16,6 +16,7 @@ interface NewsGlobeProps {
   selectedCluster: NewsCluster | null;
   onPinClick: (cluster: NewsCluster) => void;
   onFlyTo?: { lat: number; lng: number } | null;
+  lowPerf?: boolean;
 }
 
 interface ArcDatum {
@@ -117,11 +118,14 @@ function arcDashAnimateTime() { return 3000; }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
+const MAX_VISIBLE_PINS_LOW = 50;
+
 const NewsGlobe: React.FC<NewsGlobeProps> = ({
   clusters,
   selectedCluster,
   onPinClick,
   onFlyTo,
+  lowPerf = false,
 }) => {
   const globeRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -151,12 +155,14 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
   // Build all pins, then limit to top 150 by importance
   const allPins = useMemo(() => buildPins(clusters), [clusters]);
 
+  const pinLimit = lowPerf ? MAX_VISIBLE_PINS_LOW : MAX_VISIBLE_PINS;
+
   const pins = useMemo(() => {
-    if (allPins.length <= MAX_VISIBLE_PINS) return allPins;
+    if (allPins.length <= pinLimit) return allPins;
     return [...allPins]
       .sort((a, b) => b.cluster.importance - a.cluster.importance)
-      .slice(0, MAX_VISIBLE_PINS);
-  }, [allPins]);
+      .slice(0, pinLimit);
+  }, [allPins, pinLimit]);
 
   // Breaking pins get ring animations — limit to top 10 by importance
   const breakingPins = useMemo(() => {
@@ -201,10 +207,10 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     const controls = globeRef.current?.controls();
     if (!controls) return;
 
-    const shouldRotate = !selectedCluster && !userInteracting && altitudeRef.current >= 1.8;
+    const shouldRotate = !lowPerf && !selectedCluster && !userInteracting && altitudeRef.current >= 1.8;
     controls.autoRotate = shouldRotate;
     controls.autoRotateSpeed = 0.3;
-  }, [selectedCluster, userInteracting]);
+  }, [selectedCluster, userInteracting, lowPerf]);
 
   // Monitor altitude via OrbitControls 'change' event to toggle rotation on zoom
   useEffect(() => {
@@ -220,7 +226,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
 
       // Only update autoRotate when crossing the threshold
       if (prevAbove !== nowAbove) {
-        const shouldRotate = !selectedCluster && !userInteracting && nowAbove;
+        const shouldRotate = !lowPerf && !selectedCluster && !userInteracting && nowAbove;
         controls.autoRotate = shouldRotate;
       }
     };
@@ -229,7 +235,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
     return () => {
       controls.removeEventListener('change', onCameraChange);
     };
-  }, [selectedCluster, userInteracting]);
+  }, [selectedCluster, userInteracting, lowPerf]);
 
   // Initial camera position — slightly tilted cinematic view
   useEffect(() => {
@@ -288,10 +294,10 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       width={dimensions.width}
       height={dimensions.height}
       globeImageUrl="/img/earth-day.jpg"
-      bumpImageUrl={GLOBE.bumpImageUrl}
+      bumpImageUrl={lowPerf ? undefined : GLOBE.bumpImageUrl}
       backgroundImageUrl={GLOBE.backgroundImageUrl}
       atmosphereColor="#7c5cfc"
-      atmosphereAltitude={0.2}
+      atmosphereAltitude={lowPerf ? 0 : 0.2}
       // Points layer — slightly translucent colored dots, merged for performance
       pointsData={pins}
       pointLat={pointLat}
@@ -302,7 +308,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       pointsMerge={false}
       onPointClick={handlePointClick}
       // Rings layer — slow breathing pulse for breaking news (top 10 only)
-      ringsData={breakingPins}
+      ringsData={lowPerf ? [] : breakingPins}
       ringLat={ringLat}
       ringLng={ringLng}
       ringColor={ringColor}
@@ -310,7 +316,7 @@ const NewsGlobe: React.FC<NewsGlobeProps> = ({
       ringPropagationSpeed={ringPropagationSpeed}
       ringRepeatPeriod={ringRepeatPeriod}
       // Arcs layer — thin, slow dash animation
-      arcsData={arcs}
+      arcsData={lowPerf ? [] : arcs}
       arcStartLat={arcStartLat}
       arcStartLng={arcStartLng}
       arcEndLat={arcEndLat}

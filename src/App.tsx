@@ -55,7 +55,9 @@ const App: React.FC = () => {
 
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const [urlSearchTitle, setUrlSearchTitle] = useState<string | null>(null);
+  const [urlSearchNoResults, setUrlSearchNoResults] = useState(false);
   const [savedClusters, setSavedClusters] = useState<NewsCluster[] | null>(null);
+  const [lowPerf, setLowPerf] = useState(false);
 
   // Handle pin click on globe
   const handlePinClick = useCallback((cluster: NewsCluster) => {
@@ -101,21 +103,35 @@ const App: React.FC = () => {
       if (!savedClusters) {
         setSavedClusters(clusters);
       }
+      setUrlSearchNoResults(false);
       const res = await fetch('/api/news/similar?url=' + encodeURIComponent(url));
       const data = await res.json();
-      if (data.clusters) {
-        setClusters(data.clusters as NewsCluster[]);
+      const similarClusters = (data.similar || []) as NewsCluster[];
+      const title = data.query?.title || url;
+
+      if (similarClusters.length > 0) {
+        // Sort by similarity score descending (server already sorts, but ensure it)
+        similarClusters.sort((a: any, b: any) => (b.similarity || 0) - (a.similarity || 0));
+        setClusters(similarClusters);
+        setUrlSearchTitle(title);
+        setSidebarOpen(true);
+      } else {
+        // No similar stories found — show warning banner, auto-dismiss after 5s
+        setUrlSearchTitle(null);
+        setUrlSearchNoResults(true);
+        setTimeout(() => {
+          setUrlSearchNoResults(false);
+        }, 5000);
       }
-      const title = data.title || url;
-      setUrlSearchTitle(title);
     } catch (err) {
       console.error('URL search failed:', err);
     }
-  }, [clusters, savedClusters, setClusters]);
+  }, [clusters, savedClusters, setClusters, setSidebarOpen]);
 
   // Dismiss URL search banner and restore original clusters
   const handleDismissUrlSearch = useCallback(() => {
     setUrlSearchTitle(null);
+    setUrlSearchNoResults(false);
     setSearchQuery('');
     if (savedClusters) {
       setClusters(savedClusters);
@@ -183,6 +199,27 @@ const App: React.FC = () => {
     marginLeft: 4,
   };
 
+  const noResultsBannerStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 108,
+    left: 170,
+    zIndex: 1100,
+    maxWidth: 280,
+    background: 'rgba(245, 158, 11, 0.15)',
+    border: '1px solid rgba(245, 158, 11, 0.3)',
+    borderRadius: 12,
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    padding: '6px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 12,
+    color: 'rgba(245, 240, 235, 0.85)',
+    fontFamily: "'Inter', sans-serif",
+    animation: 'searchClearFadeIn 0.3s ease forwards',
+  };
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#121218', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif" }}>
       <style>{GLOBAL_CSS}</style>
@@ -193,6 +230,7 @@ const App: React.FC = () => {
         selectedCluster={selectedCluster}
         onPinClick={handlePinClick}
         onFlyTo={flyTo}
+        lowPerf={lowPerf}
       />
 
       {/* UI Overlay */}
@@ -218,6 +256,21 @@ const App: React.FC = () => {
             style={urlBannerDismissStyle}
             onClick={handleDismissUrlSearch}
             aria-label="Dismiss URL search"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {urlSearchNoResults && (
+        <div style={noResultsBannerStyle}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            No similar stories found
+          </span>
+          <button
+            style={urlBannerDismissStyle}
+            onClick={() => setUrlSearchNoResults(false)}
+            aria-label="Dismiss no results"
           >
             ×
           </button>
@@ -253,6 +306,34 @@ const App: React.FC = () => {
 
       {/* Loading overlay */}
       <LoadingScreen isVisible={isLoading && clusters.length === 0} />
+
+      {/* Low Performance toggle */}
+      <button
+        onClick={() => setLowPerf(prev => !prev)}
+        style={{
+          position: 'fixed',
+          bottom: 44,
+          right: 16,
+          zIndex: 1100,
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 20,
+          padding: '4px 12px',
+          fontSize: 10,
+          color: 'rgba(245, 240, 235, 0.85)',
+          fontFamily: "'Inter', sans-serif",
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          transition: 'background 0.2s ease',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.14)')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
+        title={lowPerf ? 'Switch to full performance mode' : 'Switch to low performance mode for slower devices'}
+      >
+        {lowPerf ? '\uD83D\uDC22 Static' : '\u26A1 Performance'}
+      </button>
     </div>
   );
 };
