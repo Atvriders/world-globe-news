@@ -5,7 +5,7 @@ Interactive 3D globe news viewer — browse breaking news from around the world 
 ## Features
 
 - **3D Holographic Globe** — Soft glowing orb with warm indigo atmosphere, buttery smooth rotation, dreamy ring pulses, ethereal arcs, cinematic fly-to, responsive to window resize
-- **250 RSS Feed Sources** — Aggregates real-time news from exactly 250 RSS feeds worldwide including Reuters, AP, BBC, CNN, NYT, Al Jazeera, NHK, SCMP, and more
+- **896 RSS Feed Sources** — Aggregates real-time news from 896 feeds worldwide covering every continent, major city, and niche category
 - **Political Bias Indicators** — Each source labeled with bias rating (Left, Center-Left, Center, Center-Right, Right, Independent) based on AllSides/MBFC data
 - **Auto-Geocoding** — Extracts locations from headlines using 70+ country codes, 100+ major cities, 50+ keyword mappings, and 35+ geographic landmarks (Strait of Hormuz, Suez Canal, Gaza Strip, Crimea, etc.)
 - **News Clustering** — Jaccard similarity groups articles by topic, then geographic proximity (100km) merges nearby clusters into location groups (e.g., all Strait of Hormuz stories in one pin)
@@ -107,7 +107,7 @@ world-globe-news/
 │       └── index.ts              # TypeScript interfaces (incl. NewsBias type)
 ├── server/
 │   └── src/
-│       └── server.js             # Express backend (250+ RSS feeds, geocoding, clustering)
+│       └── server.js             # Express backend (896 RSS feeds, geocoding, clustering)
 ├── public/img/                   # Globe textures
 ├── Dockerfile                    # Frontend (nginx)
 ├── server/Dockerfile             # Backend (node)
@@ -118,7 +118,7 @@ world-globe-news/
 
 ## How It Works
 
-1. **Backend** polls 250+ RSS feeds every 5 minutes (50 articles per feed, 20 concurrent, 10s timeout, 2-min cache)
+1. **Backend** polls 896 RSS feeds every 5 minutes (50 articles per feed, 20 concurrent, 10s timeout, 2-min cache)
 2. **Geocoding** extracts locations from article titles using keyword dictionaries (cities, countries, political figures, organizations)
 3. **Clustering** groups articles about the same topic using Jaccard word-set similarity (threshold 0.25) — no article cap per cluster
 4. **Breaking detection** flags clusters with 3+ sources
@@ -135,22 +135,30 @@ world-globe-news/
 | `GET /api/news/stats` | Aggregate stats (cluster count, source count, categories) |
 | `GET /api/health` | Server health check |
 
-## News Sources (250+ feeds)
+## News Sources (896 feeds)
 
-**Wire/US:** Reuters, AP, CNN, Fox News, NBC, ABC, CBS, NPR, PBS, NYT, Washington Post, WSJ, Bloomberg, Politico, The Hill, USA Today, LA Times, Chicago Tribune, Boston Globe, ProPublica, Axios, The Atlantic, Vox, Slate, Vice, Mother Jones, National Review, The Intercept, Daily Beast, NY Post
+**Wire/US National:** Reuters, AP, CNN, Fox News, Newsmax, NBC, ABC, CBS, NPR, PBS, NYT, Washington Post, WSJ, Bloomberg, Politico, The Hill, USA Today, ProPublica, Axios, The Atlantic, Vox, Slate, Vice, Mother Jones, National Review, The Intercept, Salon, The Nation, Jacobin, Democracy Now, The Federalist, Washington Examiner, Epoch Times
 
-**UK/Europe:** BBC (7 feeds), Sky News, The Guardian (5 feeds), The Independent, Financial Times, Irish Times, RTE, Metro UK, Mirror, Der Spiegel, France 24, EuroNews, ANSA, Swiss Info, Politico EU, EU Observer, Balkan Insight, The Local (5 countries)
+**US Regional (170+):** LA Times, Chicago Tribune, Boston Globe, SF Chronicle, Seattle Times, Miami Herald, Atlanta Journal, Dallas Morning News, Detroit Free Press, Philadelphia Inquirer, Tampa Bay Times, Arizona Republic + 50 major city newspapers, NBC/ABC/Fox local stations, NPR affiliates (KQED, WNYC, WBUR, etc.)
 
-**Asia-Pacific:** NHK, SCMP (3 feeds), Times of India, Hindustan Times, The Hindu, NDTV, Straits Times, Channel News Asia, Bangkok Post, Korea Herald, Jakarta Post, Japan Times, Yonhap, Kyodo, Taipei Times, Dawn, Vietnam News, The Diplomat, Asia Times, ABC Australia, NZ Herald, RNZ
+**UK/Europe (60+):** BBC (7 feeds), Sky News, The Guardian (5 feeds), The Independent, Financial Times, Irish Times, RTE, Metro UK, Der Spiegel, France 24, EuroNews, ANSA, Swiss Info, Politico EU, EU Observer, Euractiv, Brussels Times, Dutch News, The Local (8 countries), Kyiv Independent, Baltic Times + Nordic/Eastern European outlets
 
-**Middle East/Africa:** Al Jazeera, Al Arabiya, Times of Israel, Haaretz, Gulf News, Arab News, Kurdistan 24, TRT World, Middle East Eye, The National UAE, Daily Maverick, Mail & Guardian, All Africa, Sahara Reporters, Punch Nigeria, East African
+**Asia-Pacific (80+):** NHK, SCMP (4 feeds), Times of India, Hindustan Times, The Hindu, NDTV (3 feeds), India Today, The Print, Straits Times, Channel News Asia, Bangkok Post, Korea Herald, Jakarta Post, Japan Times, Yonhap, Kyodo, Dawn, Rappler, The Diplomat, Asia Times, ABC Australia, NZ Herald, RNZ + Pacific Islands
 
-**Science/Tech:** Nature, Science Daily, NASA, ESA, New Scientist, Phys.org, Space.com, MIT Tech Review, TechCrunch, The Verge, Ars Technica, Wired, ZDNet, Engadget, CNET, 9to5Mac, Hacker News, Rest of World
+**Middle East (30+):** Al Jazeera, Al Arabiya, Times of Israel, Haaretz, Gulf News, Arab News, Kurdistan 24, TRT World, Middle East Eye, Al-Monitor, Jerusalem Post, Daily Sabah, Rudaw, Asharq Al-Awsat + regional outlets
 
-**Business:** CNBC, MarketWatch, Business Insider, Fortune, Forbes, Quartz, Fast Company, The Economist
+**Africa (40+):** Daily Maverick, Mail & Guardian, All Africa, Punch Nigeria, Premium Times, This Day, Business Day, The Star Kenya, News24 SA + East/West/North African outlets
 
-**Health:** WHO News, Medical News Today, Stat News, Kaiser Health News, WebMD, Live Science
+**Latin America (20+):** El Universal Mexico, Folha de S.Paulo, La Nacion Argentina, El Tiempo Colombia + Caribbean outlets
 
-**Sports:** ESPN, BBC Sport, Sky Sports, Marca, Goal.com
+**Science/Space:** Nature, Science Daily, NASA, ESA, New Scientist, Phys.org, Space.com, SpaceNews, Universe Today, Quanta Magazine, The Lancet, Science Magazine
 
-**Entertainment:** Variety, Hollywood Reporter, Rolling Stone, Pitchfork, Deadline, Screen Rant, IGN, Polygon, AV Club
+**Technology (40+):** TechCrunch, The Verge, Ars Technica, Wired, CNET, 9to5Mac, MacRumors, Android Authority, TechRadar, Engadget, Hacker News, VentureBeat, Gizmodo, Mashable + cybersecurity (Krebs, Bleeping Computer, Dark Reading)
+
+**Business/Finance:** CNBC, MarketWatch, Business Insider, Fortune, Forbes, Quartz, Fast Company, The Economist, Yahoo Finance, Seeking Alpha, TheStreet, Motley Fool
+
+**Specialty:** Military/Defense (10), Legal/Justice (10), Crypto/Web3 (8), Gaming (8), Automotive (8), Energy/Climate (8), Real Estate (8), Food/Agriculture (8), Travel (8), Aviation (5), Maritime (5), Robotics (4), Biotech (4)
+
+**Sports:** ESPN, BBC Sport, Sky Sports, CBS Sports, Marca, Goal.com, Bleacher Report
+
+**Entertainment:** Variety, Hollywood Reporter, Rolling Stone, Pitchfork, Deadline, Screen Rant, IGN, Polygon, TMZ, People
