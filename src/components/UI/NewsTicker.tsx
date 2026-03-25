@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { NewsCluster } from '../../types';
 import { CATEGORY_ICONS } from '../../data/theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // ── Props ────────────────────────────────────────────────────────────────────
 
@@ -12,6 +13,8 @@ interface NewsTickerProps {
 // ── Component ────────────────────────────────────────────────────────────────
 
 const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) => {
+  const isMobile = useIsMobile();
+
   const hasBreaking = useMemo(
     () => clusters.some((c) => c.isBreaking),
     [clusters],
@@ -72,8 +75,12 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ clusters, onHeadlineClick }) =>
 
   if (clusters.length === 0) return null;
 
+  const mobileWrapperOverride: React.CSSProperties = isMobile
+    ? { height: 36, fontSize: 12 }
+    : {};
+
   return (
-    <div style={{...styles.wrapper, animation: 'ticker-slide-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'}}>
+    <div style={{...styles.wrapper, ...mobileWrapperOverride, animation: 'ticker-slide-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'}}>
       {/* Badge */}
       {hasBreaking ? (
         <div style={styles.badge}>

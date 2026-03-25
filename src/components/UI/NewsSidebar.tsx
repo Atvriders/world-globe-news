@@ -234,59 +234,114 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
   // ── Styles ──
 
-  const wrapperStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 56,
-    right: 0,
-    height: 'calc(100vh - 92px)',
-    zIndex: 900,
-    pointerEvents: 'none',
-  };
+  const wrapperStyle: React.CSSProperties = isMobile
+    ? {
+        position: 'fixed',
+        bottom: 36, // above ticker
+        left: 0,
+        right: 0,
+        height: '60vh',
+        zIndex: 900,
+        pointerEvents: 'none',
+      }
+    : {
+        position: 'fixed',
+        top: 56,
+        right: 0,
+        height: 'calc(100vh - 92px)',
+        zIndex: 900,
+        pointerEvents: 'none',
+      };
 
-  const tabStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 24,
-    right: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
-    background: hoveredTab ? 'rgba(12, 12, 20, 0.85)' : 'rgba(12, 12, 20, 0.75)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.06)',
-    borderRight: 'none',
-    borderRadius: '12px 0 0 12px',
-    padding: '14px 10px',
-    cursor: 'pointer',
-    pointerEvents: 'auto',
-    userSelect: 'none',
-    transition: 'all 0.2s ease',
-    boxShadow: hoveredTab
-      ? '-8px 0 40px rgba(0,0,0,0.5), 0 0 16px rgba(124,92,252,0.15)'
-      : '-4px 0 20px rgba(0,0,0,0.3)',
-  };
+  const tabStyle: React.CSSProperties = isMobile
+    ? {
+        position: 'absolute',
+        top: -48,
+        right: 12,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        background: hoveredTab ? 'rgba(12, 12, 20, 0.9)' : 'rgba(12, 12, 20, 0.8)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 22,
+        padding: '10px 16px',
+        minHeight: 44,
+        cursor: 'pointer',
+        pointerEvents: 'auto',
+        userSelect: 'none',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+      }
+    : {
+        position: 'absolute',
+        top: 24,
+        right: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 8,
+        background: hoveredTab ? 'rgba(12, 12, 20, 0.85)' : 'rgba(12, 12, 20, 0.75)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRight: 'none',
+        borderRadius: '12px 0 0 12px',
+        padding: '14px 10px',
+        cursor: 'pointer',
+        pointerEvents: 'auto',
+        userSelect: 'none',
+        transition: 'all 0.2s ease',
+        boxShadow: hoveredTab
+          ? '-8px 0 40px rgba(0,0,0,0.5), 0 0 16px rgba(124,92,252,0.15)'
+          : '-4px 0 20px rgba(0,0,0,0.3)',
+      };
 
-  const panelStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: isMobile ? '100vw' : 380,
-    height: '100%',
-    background: 'rgba(12, 12, 20, 0.75)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderLeft: '1px solid rgba(255,255,255,0.06)',
-    boxShadow: '-8px 0 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(99, 102, 241, 0.03)',
-    display: 'flex',
-    flexDirection: 'column',
-    transition:
-      'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    transform: open ? 'translateX(0)' : 'translateX(100%)',
-    opacity: open ? 1 : 0,
-    pointerEvents: open ? 'auto' : 'none',
-    willChange: 'transform, opacity',
-  };
+  const panelStyle: React.CSSProperties = isMobile
+    ? {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(12, 12, 20, 0.92)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '16px 16px 0 0',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition:
+          'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: open ? 'translateY(0)' : 'translateY(100%)',
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? 'auto' : 'none',
+        willChange: 'transform, opacity',
+      }
+    : {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 380,
+        height: '100%',
+        background: 'rgba(12, 12, 20, 0.75)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '-8px 0 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(99, 102, 241, 0.03)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition:
+          'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? 'auto' : 'none',
+        willChange: 'transform, opacity',
+      };
 
   // ── Render helpers ──
 
@@ -509,10 +564,11 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
               onMouseLeave={() => setHoveredSidebarTab(null)}
               style={{
                 flex: 1,
-                fontSize: 11,
+                fontSize: isMobile ? 10 : 11,
                 fontWeight: 700,
                 letterSpacing: '0.3px',
-                padding: '8px 14px 10px',
+                padding: isMobile ? '12px 8px' : '8px 14px 10px',
+                minHeight: isMobile ? 44 : 'auto',
                 borderRadius: '10px 10px 0 0',
                 border: 'none',
                 borderBottom: isActive
@@ -850,8 +906,8 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
           </span>
           <span
             style={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'mixed',
+              writingMode: isMobile ? 'horizontal-tb' : 'vertical-rl',
+              textOrientation: isMobile ? 'mixed' : 'mixed',
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: '1px',
@@ -859,20 +915,40 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
               textTransform: 'uppercase',
             }}
           >
-            News Feed
+            {isMobile ? 'News' : 'News Feed'}
           </span>
         </div>
       )}
 
       {/* Panel */}
       <div style={panelStyle}>
+        {/* Mobile drag handle indicator */}
+        {isMobile && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '8px 0 0',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                background: 'rgba(255,255,255,0.2)',
+              }}
+            />
+          </div>
+        )}
         {/* ── Header ── */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 16px 12px',
+            padding: isMobile ? '8px 16px 12px' : '14px 16px 12px',
             borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}
         >
@@ -959,7 +1035,12 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
                 color: hoveredClose ? UI.text : UI.textSecondary,
                 fontSize: 20,
                 cursor: 'pointer',
-                padding: '0 2px',
+                padding: isMobile ? '8px' : '0 2px',
+                minWidth: isMobile ? 44 : 'auto',
+                minHeight: isMobile ? 44 : 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 lineHeight: 1,
                 transition: 'color 0.2s ease, transform 0.2s ease',
                 transform: hoveredClose ? 'scale(1.1)' : 'scale(1)',

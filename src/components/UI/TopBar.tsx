@@ -118,7 +118,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 20px',
+        padding: isMobile ? '0 10px' : '0 20px',
         background: 'rgba(15, 15, 25, 0.6)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
@@ -127,7 +127,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
       }}
     >
       {/* ── Left: Brand ──────────────────────────────────── */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         {/* Animated live dot */}
         <span
           style={{
@@ -141,10 +141,10 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         />
         <span
           style={{
-            fontSize: 13,
+            fontSize: isMobile ? 11 : 13,
             fontWeight: 700,
             fontFamily: "'Inter', sans-serif",
-            letterSpacing: 1.8,
+            letterSpacing: isMobile ? 1 : 1.8,
             whiteSpace: 'nowrap',
             background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
             WebkitBackgroundClip: 'text',
@@ -152,12 +152,12 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
             backgroundClip: 'text',
           } as React.CSSProperties}
         >
-          WORLD GLOBE NEWS
+          {isMobile ? 'WGN' : 'WORLD GLOBE NEWS'}
         </span>
       </div>
 
       {/* ── Center: Category Dropdown ────────────────────── */}
-      <div style={{ position: 'relative', flexShrink: isMobile ? 1 : 0, flex: isMobile ? 1 : 'none', margin: isMobile ? '0 8px' : undefined }}>
+      <div style={{ position: 'relative', flexShrink: isMobile ? 1 : 0, flex: isMobile ? 1 : 'none', margin: isMobile ? '0 6px' : undefined }}>
         <button
           ref={buttonRef}
           onClick={() => setMenuOpen((prev) => !prev)}
@@ -165,8 +165,9 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            padding: '6px 14px',
+            padding: isMobile ? '8px 12px' : '6px 14px',
             borderRadius: 10,
+            minHeight: isMobile ? 44 : 'auto',
             width: isMobile ? '100%' : undefined,
             border: `1px solid ${menuOpen ? 'rgba(124, 92, 252, 0.4)' : 'rgba(255,255,255,0.1)'}`,
             background: menuOpen ? 'rgba(124, 92, 252, 0.12)' : 'rgba(255,255,255,0.05)',
@@ -201,11 +202,12 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
           <div
             ref={dropdownRef}
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              minWidth: 220,
+              position: isMobile ? 'fixed' as const : 'absolute' as const,
+              top: isMobile ? 52 : 'calc(100% + 6px)',
+              left: isMobile ? 10 : '50%',
+              right: isMobile ? 10 : 'auto',
+              transform: isMobile ? 'none' : 'translateX(-50%)',
+              minWidth: isMobile ? 'auto' : 220,
               background: 'rgba(22, 22, 30, 0.92)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
@@ -213,7 +215,7 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
               borderRadius: 12,
               boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05)',
               padding: '6px 0',
-              animation: 'topbar-dropdown-in 0.18s ease-out forwards',
+              animation: isMobile ? 'topbar-dropdown-in-mobile 0.18s ease-out forwards' : 'topbar-dropdown-in 0.18s ease-out forwards',
               zIndex: 1200,
             }}
           >
@@ -236,7 +238,8 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
                     alignItems: 'center',
                     gap: 10,
                     width: '100%',
-                    padding: '8px 14px',
+                    padding: isMobile ? '12px 14px' : '8px 14px',
+                    minHeight: isMobile ? 44 : 'auto',
                     border: 'none',
                     outline: 'none',
                     cursor: 'pointer',
@@ -304,34 +307,38 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 14,
+          gap: isMobile ? 8 : 14,
           flexShrink: 0,
         }}
       >
-        {/* Clock */}
-        <span
-          style={{
-            color: '#f5f0e8',
-            fontSize: 12,
-            fontWeight: 500,
-            fontFamily: "'Inter', monospace",
-            fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '0.04em',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {clock}
-        </span>
+        {/* Clock -- hide on mobile to save space */}
+        {!isMobile && (
+          <span
+            style={{
+              color: '#f5f0e8',
+              fontSize: 12,
+              fontWeight: 500,
+              fontFamily: "'Inter', monospace",
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {clock}
+          </span>
+        )}
 
-        {/* Divider */}
-        <span
-          style={{
-            width: 1,
-            height: 16,
-            background: 'rgba(255,255,255,0.1)',
-            flexShrink: 0,
-          }}
-        />
+        {/* Divider -- hide on mobile */}
+        {!isMobile && (
+          <span
+            style={{
+              width: 1,
+              height: 16,
+              background: 'rgba(255,255,255,0.1)',
+              flexShrink: 0,
+            }}
+          />
+        )}
 
         {/* LIVE badge */}
         <span
@@ -368,14 +375,16 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         </span>
 
         {/* Divider */}
-        <span
-          style={{
-            width: 1,
-            height: 16,
-            background: 'rgba(255,255,255,0.1)',
-            flexShrink: 0,
-          }}
-        />
+        {!isMobile && (
+          <span
+            style={{
+              width: 1,
+              height: 16,
+              background: 'rgba(255,255,255,0.1)',
+              flexShrink: 0,
+            }}
+          />
+        )}
 
         {/* Stats */}
         {!isMobile && (
@@ -451,6 +460,10 @@ const TopBar: React.FC<TopBarProps> = ({ selectedCategory, onCategoryChange, onR
         @keyframes topbar-dropdown-in {
           from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes topbar-dropdown-in-mobile {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

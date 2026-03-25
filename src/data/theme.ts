@@ -145,6 +145,31 @@ export const BREAKING_SOURCE_THRESHOLD = 3; // 3+ sources = breaking
 // ── CSS Animations & Utilities ──────────────────────────────────────────────
 
 export const GLOBAL_CSS = `
+  /* ── Mobile base styles ───────────────────────────────────────────────── */
+  html, body, #root {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  @media (max-width: 768px) {
+    body {
+      font-size: 14px;
+    }
+    /* Prevent any horizontal scrolling from absolutely positioned elements */
+    #root {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+    /* Ensure touch targets meet 44px minimum */
+    button, a, [role="button"] {
+      min-height: 36px;
+    }
+  }
+
   /* ── Glassmorphism utility ─────────────────────────────────────────────── */
   .glass {
     background: rgba(255, 255, 255, 0.06);

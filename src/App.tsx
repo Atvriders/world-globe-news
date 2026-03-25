@@ -10,6 +10,7 @@ import RegionSelector from './components/UI/RegionSelector';
 import StatsOverlay from './components/UI/StatsOverlay';
 import { useStore } from './hooks/useStore';
 import { useNewsFetch } from './hooks/useNewsFetch';
+import { useIsMobile } from './hooks/useIsMobile';
 import { GLOBAL_CSS } from './data/theme';
 import { NewsCluster } from './types';
 
@@ -20,11 +21,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
   render() {
     if (this.state.error) {
       return (
-        <div style={{ background: '#121218', color: '#ff5252', padding: 40, fontFamily: 'monospace', height: '100vh' }}>
-          <h2 style={{ color: '#f5f0eb', marginBottom: 16 }}>Something went wrong</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.6 }}>{this.state.error.message}</pre>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, color: '#6b6578', marginTop: 12 }}>{this.state.error.stack}</pre>
-          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 20, padding: '8px 16px', background: '#7c5cfc', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+        <div style={{ background: '#121218', color: '#ff5252', padding: '20px', fontFamily: 'monospace', height: '100vh', overflow: 'auto', boxSizing: 'border-box' }}>
+          <h2 style={{ color: '#f5f0eb', marginBottom: 16, fontSize: 18 }}>Something went wrong</h2>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.6, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{this.state.error.message}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, color: '#6b6578', marginTop: 12, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{this.state.error.stack}</pre>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 20, padding: '12px 24px', minHeight: 44, background: '#7c5cfc', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}>
             Try Again
           </button>
         </div>
@@ -53,6 +54,7 @@ const App: React.FC = () => {
     setClusters,
   } = useStore();
 
+  const isMobile = useIsMobile();
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const [urlSearchTitle, setUrlSearchTitle] = useState<string | null>(null);
   const [urlSearchNoResults, setUrlSearchNoResults] = useState(false);
@@ -164,10 +166,11 @@ const App: React.FC = () => {
 
   const urlBannerStyle: React.CSSProperties = {
     position: 'fixed',
-    top: 108,
-    left: 170,
+    top: isMobile ? 100 : 108,
+    left: isMobile ? 12 : 170,
+    right: isMobile ? 12 : 'auto',
     zIndex: 1100,
-    maxWidth: 280,
+    maxWidth: isMobile ? 'none' : 280,
     background: 'rgba(124, 92, 252, 0.15)',
     border: '1px solid rgba(124, 92, 252, 0.3)',
     borderRadius: 12,
@@ -196,18 +199,19 @@ const App: React.FC = () => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 18,
-    height: 18,
+    width: isMobile ? 32 : 18,
+    height: isMobile ? 32 : 18,
     borderRadius: '50%',
     marginLeft: 4,
   };
 
   const noResultsBannerStyle: React.CSSProperties = {
     position: 'fixed',
-    top: 108,
-    left: 170,
+    top: isMobile ? 100 : 108,
+    left: isMobile ? 12 : 170,
+    right: isMobile ? 12 : 'auto',
     zIndex: 1100,
-    maxWidth: 280,
+    maxWidth: isMobile ? 'none' : 280,
     background: 'rgba(245, 158, 11, 0.15)',
     border: '1px solid rgba(245, 158, 11, 0.3)',
     borderRadius: 12,
@@ -315,16 +319,17 @@ const App: React.FC = () => {
         onClick={() => setLowPerf(prev => !prev)}
         style={{
           position: 'fixed',
-          bottom: 44,
-          right: 16,
+          bottom: isMobile ? 44 : 44,
+          right: isMobile ? 8 : 16,
           zIndex: 1100,
           background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           borderRadius: 20,
-          padding: '4px 12px',
-          fontSize: 10,
+          padding: isMobile ? '10px 14px' : '4px 12px',
+          minHeight: isMobile ? 44 : 'auto',
+          fontSize: isMobile ? 11 : 10,
           color: 'rgba(245, 240, 235, 0.85)',
           fontFamily: "'Inter', sans-serif",
           cursor: 'pointer',

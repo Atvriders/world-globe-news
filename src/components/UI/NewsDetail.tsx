@@ -111,27 +111,51 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   // ── Styles ──────────────────────────────────────────────────────────────
 
-  const panel: React.CSSProperties = {
-    position: 'fixed',
-    top: isMobile ? 0 : 56,
-    right: 0,
-    width: isMobile ? 'min(320px, 85vw)' : 380,
-    height: isMobile ? '100vh' : 'calc(100vh - 56px)',
-    zIndex: 1200,
-    background: 'rgba(12, 12, 20, 0.85)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderLeft: '1px solid rgba(255,255,255,0.06)',
-    boxShadow: '-8px 0 40px rgba(0,0,0,0.55), inset 0 0 30px rgba(99, 102, 241, 0.03)',
-    transform: visible ? 'translateX(0)' : 'translateX(100%)',
-    willChange: 'transform',
-    transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    fontFamily:
-      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  };
+  const panel: React.CSSProperties = isMobile
+    ? {
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        height: '70vh',
+        zIndex: 1200,
+        background: 'rgba(12, 12, 20, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '16px 16px 0 0',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
+        transform: visible ? 'translateY(0)' : 'translateY(100%)',
+        willChange: 'transform',
+        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }
+    : {
+        position: 'fixed',
+        top: 56,
+        right: 0,
+        width: 380,
+        height: 'calc(100vh - 56px)',
+        zIndex: 1200,
+        background: 'rgba(12, 12, 20, 0.85)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '-8px 0 40px rgba(0,0,0,0.55), inset 0 0 30px rgba(99, 102, 241, 0.03)',
+        transform: visible ? 'translateX(0)' : 'translateX(100%)',
+        willChange: 'transform',
+        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.15, 1)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      };
 
   // ── Header ──────────────────────────────────────────────────────────────
 
@@ -369,7 +393,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   const flyBtn: React.CSSProperties = {
     width: '100%',
-    height: 42,
+    height: isMobile ? 48 : 42,
     borderRadius: 12,
     border: 'none',
     fontSize: 14,
@@ -393,11 +417,20 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ cluster, onClose, onFlyTo }) =>
 
   return (
     <div style={panel}>
+      {/* Mobile drag handle */}
+      {isMobile && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 0', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+        </div>
+      )}
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div style={headerStyle}>
         {/* Back button */}
         <button
-          style={backBtn}
+          style={{
+            ...backBtn,
+            ...(isMobile ? { minHeight: 44, padding: '8px 0' } : {}),
+          }}
           onClick={onClose}
           onMouseEnter={() => setBackHover(true)}
           onMouseLeave={() => setBackHover(false)}

@@ -45,7 +45,7 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
         style={{
           position: 'fixed',
           bottom: isMobile ? 44 : 48,
-          left: 16,
+          left: isMobile ? 8 : 16,
           zIndex: 1100,
           background: 'rgba(255,255,255,0.06)',
           backdropFilter: 'blur(12px)',
@@ -72,8 +72,8 @@ const RegionSelector: React.FC<RegionSelectorProps> = ({ onFlyTo }) => {
                 onClick={() => handleClick(region, index)}
                 aria-label={region.name}
                 style={{
-                  width: isMobile ? 28 : 32,
-                  height: isMobile ? 28 : 32,
+                  width: isMobile ? 40 : 32,
+                  height: isMobile ? 40 : 32,
                   borderRadius: '50%',
                   background: isHovered
                     ? 'rgba(255,255,255,0.12)'
