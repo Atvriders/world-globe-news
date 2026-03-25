@@ -308,7 +308,7 @@ const App: React.FC = () => {
       />
 
       {/* Loading overlay */}
-      <LoadingScreen isVisible={isLoading && clusters.length === 0} />
+      <LoadingScreen isVisible={isLoading && clusters.length === 0} timeout={15000} />
 
       {/* Low Performance toggle */}
       <button

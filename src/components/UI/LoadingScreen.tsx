@@ -2,14 +2,29 @@ import React, { useState, useEffect, useRef } from 'react';
 
 interface LoadingScreenProps {
   isVisible: boolean;
+  timeout?: number;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible, timeout = 20000 }) => {
   const [shouldRender, setShouldRender] = useState(isVisible);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [forceHide, setForceHide] = useState(false);
+
+  // Safety timeout — auto-dismiss if stuck
+  useEffect(() => {
+    if (isVisible && timeout > 0) {
+      const timer = setTimeout(() => {
+        console.warn('[LoadingScreen] Timeout reached, force dismissing');
+        setForceHide(true);
+      }, timeout);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, timeout]);
+
+  const effectiveVisible = isVisible && !forceHide;
 
   useEffect(() => {
-    if (isVisible) {
+    if (effectiveVisible) {
       setShouldRender(true);
       setIsFadingOut(false);
     } else {
@@ -20,7 +35,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isVisible }) => {
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isVisible]);
+  }, [effectiveVisible]);
 
   if (!shouldRender) return null;
 
