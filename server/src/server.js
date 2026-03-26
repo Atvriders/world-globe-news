@@ -1854,9 +1854,20 @@ app.get('/api/news', (req, res) => {
     );
   }
 
+  // Limit response size: cap articles per cluster and truncate summaries
+  const trimmed = filtered.map(c => ({
+    ...c,
+    summary: c.summary ? c.summary.slice(0, 500) : '',
+    articles: (c.articles || []).slice(0, 10).map(a => ({
+      ...a,
+      description: a.description ? a.description.slice(0, 300) : '',
+      content: undefined, // strip full content from list endpoint
+    })),
+  }));
+
   res.json({
-    clusters: filtered,
-    total: filtered.length,
+    clusters: trimmed,
+    total: trimmed.length,
     lastFetch: lastFetchTime,
   });
 });
