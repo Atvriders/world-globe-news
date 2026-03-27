@@ -167,6 +167,27 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
   const sorted = useMemo(() => sortClusters(filtered, sortMode), [filtered, sortMode]);
 
+  // Deduplicate — remove clusters with very similar titles
+  const dedupedFeed = useMemo(() => {
+    const result: typeof sorted = [];
+    const seenFeedTitles: string[] = [];
+    for (const story of sorted) {
+      const normalized = story.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+      const words = new Set(normalized.split(/\s+/));
+      const isDupe = seenFeedTitles.some(seen => {
+        const seenWords = new Set(seen.split(/\s+/));
+        const intersection = [...words].filter(w => seenWords.has(w)).length;
+        const union = new Set([...words, ...seenWords]).size;
+        return union > 0 && intersection / union > 0.6;
+      });
+      if (!isDupe) {
+        result.push(story);
+        seenFeedTitles.push(normalized);
+      }
+    }
+    return result;
+  }, [sorted]);
+
   const breakingCount = useMemo(() => filtered.filter((c) => c.isBreaking).length, [filtered]);
 
   const activeSourceCount = useMemo(() => {
@@ -177,8 +198,8 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
   const categoryGroups = useMemo(() => {
     if (sortMode !== 'category') return null;
-    return groupByCategory(sorted);
-  }, [sorted, sortMode]);
+    return groupByCategory(dedupedFeed);
+  }, [dedupedFeed, sortMode]);
 
   // ── Sources tab data ──
 
@@ -1187,7 +1208,7 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
                 )
               ) : (
                 /* ── Flat sorted list ── */
-                sorted.map(renderCard)
+                dedupedFeed.map(renderCard)
               )}
             </div>
           </>
@@ -1223,11 +1244,29 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
 
                 return false;
               });
-              const sorted = [...usStories].sort((a, b) => {
+              // Deduplicate — remove clusters with very similar titles
+              const deduped: typeof usStories = [];
+              const seenTitles: string[] = [];
+              for (const story of usStories) {
+                const normalized = story.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+                const words = new Set(normalized.split(/\s+/));
+                const isDupe = seenTitles.some(seen => {
+                  const seenWords = new Set(seen.split(/\s+/));
+                  const intersection = [...words].filter(w => seenWords.has(w)).length;
+                  const union = new Set([...words, ...seenWords]).size;
+                  return union > 0 && intersection / union > 0.6; // 60% word overlap = duplicate
+                });
+                if (!isDupe) {
+                  deduped.push(story);
+                  seenTitles.push(normalized);
+                }
+              }
+
+              const sorted = [...deduped].sort((a, b) => {
                 const srcDiff = b.articles.length - a.articles.length;
                 if (srcDiff !== 0) return srcDiff;
                 return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-              }).slice(0, 30);
+              });
 
               if (sorted.length === 0) {
                 return (
@@ -1342,9 +1381,26 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
             {/* Trending = top stories by source count (most covered) */}
             {(() => {
-              const trending = [...filtered]
-                .sort((a, b) => b.articles.length - a.articles.length || (b.isBreaking ? 1 : 0) - (a.isBreaking ? 1 : 0))
-                .slice(0, 30);
+              // Deduplicate — remove clusters with very similar titles
+              const dedupedTrending: typeof filtered = [];
+              const seenTrendingTitles: string[] = [];
+              for (const story of filtered) {
+                const normalized = story.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+                const words = new Set(normalized.split(/\s+/));
+                const isDupe = seenTrendingTitles.some(seen => {
+                  const seenWords = new Set(seen.split(/\s+/));
+                  const intersection = [...words].filter(w => seenWords.has(w)).length;
+                  const union = new Set([...words, ...seenWords]).size;
+                  return union > 0 && intersection / union > 0.6;
+                });
+                if (!isDupe) {
+                  dedupedTrending.push(story);
+                  seenTrendingTitles.push(normalized);
+                }
+              }
+
+              const trending = [...dedupedTrending]
+                .sort((a, b) => b.articles.length - a.articles.length || (b.isBreaking ? 1 : 0) - (a.isBreaking ? 1 : 0));
 
               if (trending.length === 0) {
                 return (
