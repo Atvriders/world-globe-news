@@ -1197,25 +1197,30 @@ const NewsSidebar: React.FC<NewsSidebarProps> = ({
         {activeTab === 'usa' && (
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 0' }}>
             {(() => {
-              const US_KEYWORDS = [
-                'congress', 'senate', 'white house', 'pentagon', 'trump', 'biden',
-                'republican', 'democrat', 'fbi', 'cia', 'federal', 'supreme court',
-                'wall street', 'silicon valley', 'hollywood', 'nasa', 'nfl', 'nba',
-                'mlb', 'new york', 'los angeles', 'chicago', 'texas', 'florida',
-                'california', 'washington', 'u.s.', 'american', 'united states',
-                'homeland', 'secret service', 'doj', 'department of', 'governor',
-                'state department', 'treasury', 'medicare', 'medicaid', 'social security',
-              ];
-              const US_SOURCES = ['cnn', 'fox news', 'nbc', 'abc news', 'cbs', 'npr', 'newsmax', 'politico', 'the hill', 'usa today', 'washington post', 'new york times', 'ny post'];
               const usStories = filtered.filter((cluster) => {
+                // Primary: story is geocoded to US location
                 if (cluster.location?.countryCode === 'US') return true;
-                if (cluster.location?.country && cluster.location.country.includes('United States')) return true;
-                if (cluster.articles.some((a: any) => a.country === 'US')) return true;
+                if (cluster.location?.country?.includes('United States')) return true;
+
+                // Secondary: article-level country is US (set by server geocoding)
+                const usArticleCount = cluster.articles.filter((a: any) => a.country === 'US').length;
+                if (usArticleCount > 0 && usArticleCount >= cluster.articles.length * 0.5) return true;
+
+                // Tertiary: title strongly indicates US domestic news (strict keywords only)
                 const titleLower = cluster.title.toLowerCase();
-                if (US_KEYWORDS.some((kw) => titleLower.includes(kw))) return true;
-                // Match if majority of sources are US outlets
-                const usSourceCount = cluster.articles.filter((a: any) => US_SOURCES.some(s => a.source?.name?.toLowerCase().includes(s))).length;
-                if (usSourceCount >= Math.ceil(cluster.articles.length / 2)) return true;
+                const US_DOMESTIC = [
+                  'congress', 'senate passes', 'house passes', 'white house', 'oval office',
+                  'supreme court', 'scotus', 'capitol hill', 'pentagon',
+                  'republican party', 'democratic party', 'gop ',
+                  'fbi ', 'cia ', 'doj ', 'dhs ', 'atf ',
+                  'wall street', 'dow jones', 'nasdaq', 's&p 500',
+                  'new york city', 'los angeles', 'washington d.c.', 'washington dc',
+                  'u.s. president', 'us president', 'american president',
+                  'medicare', 'medicaid', 'social security', 'obamacare',
+                  'state of the union', 'midterm', 'electoral college',
+                ];
+                if (US_DOMESTIC.some((kw) => titleLower.includes(kw))) return true;
+
                 return false;
               });
               const sorted = [...usStories].sort((a, b) => {
